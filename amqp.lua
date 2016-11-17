@@ -47,9 +47,9 @@ local function mandatory_options(opts)
       error("as a consumer, queue is required.")
    end
 
-   if not opts.exchange then
-      error("no exchange configured.")
-   end
+   --if not opts.exchange then
+   --   error("no exchange configured.")
+   --end
    
 end
 
@@ -143,6 +143,7 @@ function amqp:close()
 
    return sock:close()
 end
+
 
 
 local function platform()
@@ -643,6 +644,13 @@ function amqp:publish(payload)
    return true
 end
 
+local function default(v, def)
+  if v ~= nil then
+    return v
+  end
+  return def
+end
+
 --
 -- queue
 --
@@ -660,11 +668,11 @@ function amqp:queue_declare(opts)
 
    f.method = {
       queue = opts.queue or self.opts.queue,
-      passive = opts.passive or false,
-      durable = opts.durable or false,
-      exclusive = opts.exclusive or false,
-      auto_delete = opts.auto_delete or true,
-      no_wait = self.opts.no_wait or true
+      passive = default(opts.passive, false),
+      durable = default(opts.durable, false),
+      exclusive = default(opts.exclusive, false),
+      auto_delete = default(opts.auto_delete, true),
+      no_wait = default(opts.no_wait, true)
    }
    return frame.wire_method_frame(self,f)
 end
@@ -685,7 +693,7 @@ function amqp:queue_bind(opts)
       queue = opts.queue or self.opts.queue,
       exchange = opts.exchange or self.opts.exchange,
       routing_key = opts.routing_key or "",
-      no_wait = self.opts.no_wait or false
+      no_wait = default(opts.no_wait, false)
    }
 
    return frame.wire_method_frame(self,f)
@@ -726,9 +734,9 @@ function amqp:queue_delete(opts)
 
    f.method = {
       queue = opts.queue or self.opts.queue,
-      if_unused = opts.if_unused or false,
-      if_empty = opts.if_empty or false,
-      no_wait = self.opts.no_wait or false
+      if_unused = default(opts.if_unused, false),
+      if_empty = default(opts.if_empty, false),
+      no_wait = default(opts.no_wait, false)
    }
 
    return frame.wire_method_frame(self,f)
@@ -750,11 +758,11 @@ function amqp:exchange_declare(opts)
    f.method = {
       exchange = opts.exchange or self.opts.exchange,
       typ = opts.typ or "topic",
-      passive = opts.passive or false,
-      durable = opts.passive or false,
-      auto_delete = opts.auto_delete or false,
-      internal = opts.internal or false,
-      no_wait = self.opts.no_wait or false
+      passive = default(opts.passive, false),
+      durable = default(opts.durable, false),
+      auto_delete = default(opts.auto_delete, false),
+      internal = default(opts.internal, false),
+      no_wait = default(opts.no_wait, false)
    }
 
    return frame.wire_method_frame(self,f)
@@ -782,7 +790,7 @@ function amqp:exchange_bind(opts)
       destination = opts.destination,
       source = opts.source,
       routing_key = opts.routing_key or "",
-      no_wait = self.opts.no_wait or false
+      no_wait = default(opts.no_wait, false)
    }
 
    return frame.wire_method_frame(self,f)
@@ -810,7 +818,7 @@ function amqp:exchange_unbind(opts)
       destination = opts.destination,
       source = opts.source,
       routing_key = opts.routing_key or "",
-      no_wait = self.opts.no_wait or false
+      no_wait = default(opts.no_wait, false)
    }
 
    return frame.wire_method_frame(self,f)
@@ -826,8 +834,8 @@ function amqp:exchange_delete(opts)
    
    f.method = {
       exchange = opts.exchange or self.opts.exchange,
-      if_unused = opts.is_unused or true,
-      no_wait = self.opts.no_wait or false
+      if_unused = default(opts.is_unused, true),
+      no_wait = default(opts.no_wait, false)
    }
 
    return frame.wire_method_frame(self,f)
@@ -850,10 +858,10 @@ function amqp:basic_consume(opts)
 
    f.method = {
       queue = opts.queue or self.opts.queue,
-      no_local = opts.no_local or false,
-      no_ack = opts.no_ack or true,
-      exclusive = opts.exclusive or false,
-      no_wait = self.opts.no_wait or false
+      no_local = default(opts.no_local, false),
+      no_ack = default(opts.no_ack, true),
+      exclusive = default(opts.exclusive, false),
+      no_wait = default(opts.no_wait, false)
    }
 
    return frame.wire_method_frame(self,f)
@@ -870,8 +878,8 @@ function amqp:basic_publish(opts)
    f.method = {
       exchange = opts.exchange or self.opts.exchange,
       routing_key = opts.routing_key or self.opts.routing_key or "",
-      mandatory = opts.mandatory or false,
-      immediate = opts.immediate or false
+      mandatory = default(opts.mandatory, false),
+      immediate = default(opts.immediate, false)
    }
 
    local msg = f:encode()
