@@ -620,10 +620,10 @@ end
 -- publisher
 --
 
-function amqp:publish(payload)
-
+function amqp:publish(payload, opts)
+  
    local size = #payload
-   local ok, err = amqp.basic_publish(self)
+   local ok, err = amqp.basic_publish(self, opts)
    if not ok then
       logger.error("[amqp.publish] failed: " .. err)
       return nil, err
