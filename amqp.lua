@@ -66,18 +66,18 @@ function amqp.new(opts)
    end
    
    return setmetatable( { sock = sock,
-			  opts = opts,
-			  connection_state = c.state.CLOSED,
-			  channel_state = c.state.CLOSED,
+                          opts = opts,
+                          connection_state = c.state.CLOSED,
+                          channel_state = c.state.CLOSED,
 
-			  major = c.PROTOCOL_VERSION_MAJOR,
-			  minor = c.PROTOCOL_VERSION_MINOR,
-			  revision = c.PROTOCOL_VERSION_REVISION,
+                          major = c.PROTOCOL_VERSION_MAJOR,
+                          minor = c.PROTOCOL_VERSION_MINOR,
+                          revision = c.PROTOCOL_VERSION_REVISION,
 
-			  frame_max = c.DEFAULT_FRAME_SIZE,
-			  channel_max = c.DEFAULT_MAX_CHANNELS,
-			  mechanism = c.MECHANISM_PLAIN
-			}, mt)
+                          frame_max = c.DEFAULT_FRAME_SIZE,
+                          channel_max = c.DEFAULT_MAX_CHANNELS,
+                          mechanism = c.MECHANISM_PLAIN
+                        }, mt)
 end
 
 local function sslhandshake(ctx)
@@ -86,7 +86,7 @@ local function sslhandshake(ctx)
    if _G.ngx then
       local session, err = sock:sslhandshake()
       if not session then
-	 logger.error("[amqp.connect] SSL handshake failed: ", err)
+         logger.error("[amqp.connect] SSL handshake failed: ", err)
       end
       return session, err
    end
@@ -162,17 +162,17 @@ local function connection_start_ok(ctx)
    local user = ctx.opts.user or "guest"
    local password = ctx.opts.password or "guest"
    local f = frame.new_method_frame(c.DEFAULT_CHANNEL,
-				     c.class.CONNECTION,
-				     c.method.connection.START_OK)
+                                     c.class.CONNECTION,
+                                     c.method.connection.START_OK)
    f.method = {
       properties = {
-	 product = c.PRODUCT,
-	 version = c.VERSION,
-	 platform = platform(),
-	 copyright = c.COPYRIGHT,
-	 capabilities = {
-	    authentication_failure_close = true
-	 }
+         product = c.PRODUCT,
+         version = c.VERSION,
+         platform = platform(),
+         copyright = c.COPYRIGHT,
+         capabilities = {
+            authentication_failure_close = true
+         }
       },
       mechanism = ctx.mechanism,
       response = format("\0%s\0%s",user,password),
@@ -185,8 +185,8 @@ end
 local function connection_tune_ok(ctx)
 
    local f = frame.new_method_frame(c.DEFAULT_CHANNEL,
-				     c.class.CONNECTION,
-				     c.method.connection.TUNE_OK)
+                                     c.class.CONNECTION,
+                                     c.method.connection.TUNE_OK)
 
    f.method = {
       channel_max = ctx.channel_max or c.DEFAULT_MAX_CHANNELS,
@@ -206,8 +206,8 @@ end
 
 local function connection_open(ctx)
    local f = frame.new_method_frame(c.DEFAULT_CHANNEL,
-				     c.class.CONNECTION,
-				     c.method.connection.OPEN)
+                                     c.class.CONNECTION,
+                                     c.method.connection.OPEN)
    f.method = {
       virtual_host = ctx.opts.virtual_host or "/"
    }
@@ -232,8 +232,8 @@ end
 local function connection_close(ctx, reason)
    
    local f = frame.new_method_frame(c.DEFAULT_CHANNEL,
-				     c.class.CONNECTION,
-				     c.method.connection.CLOSE)
+                                     c.class.CONNECTION,
+                                     c.method.connection.CLOSE)
 
    f.method = sanitize_close_reason(ctx,reason)
    return frame.wire_method_frame(ctx,f)
@@ -242,8 +242,8 @@ end
 
 local function connection_close_ok(ctx)
    local f = frame.new_method_frame(ctx.channel or 1,
-				     c.class.CONNECTION,
-				     c.method.connection.CLOSE_OK)
+                                     c.class.CONNECTION,
+                                     c.method.connection.CLOSE_OK)
    
    return frame.wire_method_frame(ctx,f)
 end
@@ -251,8 +251,8 @@ end
 local function channel_open(ctx)
    
    local f = frame.new_method_frame(ctx.opts.channel or 1,
-				     c.class.CHANNEL,
-				     c.method.channel.OPEN)
+                                     c.class.CHANNEL,
+                                     c.method.channel.OPEN)
    local msg = f:encode()
    local sock = ctx.sock
    local bytes,err = sock:send(msg)
@@ -271,8 +271,8 @@ end
 local function channel_close(ctx, reason)
    
    local f = frame.new_method_frame(c.DEFAULT_CHANNEL,
-				     c.class.CHANNEL,
-				     c.method.channel.CLOSE)
+                                     c.class.CHANNEL,
+                                     c.method.channel.CLOSE)
 
    f.method = sanitize_close_reason(ctx,reason)
    return frame.wire_method_frame(ctx,f)
@@ -280,8 +280,8 @@ end
 
 local function channel_close_ok(ctx)
    local f = frame.new_method_frame(ctx.channel or 1,
-				     c.class.CHANNEL,
-				     c.method.channel.CLOSE_OK)
+                                     c.class.CHANNEL,
+                                     c.method.channel.CLOSE_OK)
    
    return frame.wire_method_frame(ctx,f)
 end
@@ -298,7 +298,7 @@ local function is_mechanism_acceptable(ctx,method)
 
    for me in gmatch(mechanism, "%S+") do
       if me == ctx.mechanism then
-	 return true
+         return true
       end
    end
    
@@ -359,9 +359,9 @@ function amqp:setup()
       logger.dbg("[amqp.setup] connection_start: ",res.method)
       local ok, err = verify_capablities(self,res.method)
       if not ok then
-	 -- in order to close the socket without sending futher data
-	 set_state(self,c.state.CLOSED, c.state.CLOSED)
-	 return nil, err
+         -- in order to close the socket without sending futher data
+         set_state(self,c.state.CLOSED, c.state.CLOSED)
+         return nil, err
       end
    end
 
@@ -404,25 +404,25 @@ function amqp:teardown(reason)
    if self.channel_state == c.state.ESTABLISHED then
       local ok, err = channel_close(self,reason)
       if not ok then
-	 logger.error("[channel_close] err: ",err)
+         logger.error("[channel_close] err: ",err)
       end
    elseif self.channel_state == c.state.CLOSE_WAIT then
       local ok, err = channel_close_ok(self)
       if not ok then
-	 logger.error("[channel_close_ok] err: ",err)
+         logger.error("[channel_close_ok] err: ",err)
       end
-	 
+         
    end
 
    if self.connection_state == c.state.ESTABLISHED then
       local ok, err = connection_close(self,reason)
       if not ok then
-	 logger.error("[connection_close] err: ",err)
+         logger.error("[connection_close] err: ",err)
       end
    elseif self.connection_state == c.state.CLOSE_WAIT then
       local ok, err = connection_close_ok(self)
       if not ok then
-	 logger.error("[connection_close_ok] err: ",err)
+         logger.error("[connection_close_ok] err: ",err)
       end
    end
 
@@ -469,10 +469,14 @@ local function timedout(ctx, timeouts)
    local c = 0
    for i = 1, window do
       if band(rshift(timeouts,i-1),1) ~= 0 then
-	 c = c + 1
+         c = c + 1
       end
    end
    return c >= threshold
+end
+
+function amqp:timedout(timeouts)
+    return timedout(self, timeouts)
 end
 
 local function error_string(err)
@@ -513,102 +517,102 @@ function amqp:consume()
 --
       ::continue::
 --
-	 
+         
       local f, err0 = frame.consume_frame(self)
       if not f then
 
-	 if exiting() then
-	    err = "exiting"
-	    break
-	 end
-	 -- in order to send the heartbeat,
-	 -- the very read op need be awaken up periodically, so the timeout is expected.
-	 if err0 ~= "timeout" then
-	    logger.error("[amqp.consume]",error_string(err0))
-	 end
-	 
-	 if err0 == "closed" then
-	    err = err0
-	    set_state(self, c.state.CLOSED, c.state.CLOSED)
-	    logger.error("[amqp.consume] socket closed.")
-	    break
-	 end
+         if exiting() then
+            err = "exiting"
+            break
+         end
+         -- in order to send the heartbeat,
+         -- the very read op need be awaken up periodically, so the timeout is expected.
+         if err0 ~= "timeout" then
+            logger.error("[amqp.consume]",error_string(err0))
+         end
+         
+         if err0 == "closed" then
+            err = err0
+            set_state(self, c.state.CLOSED, c.state.CLOSED)
+            logger.error("[amqp.consume] socket closed.")
+            break
+         end
 
-	 if err0 == "wantread" then
-	    err = err0
-	    set_state(self, c.state.CLOSED, c.state.CLOSED)
-	    logger.error("[amqp.consume] SSL socket needs to dohandshake again.")
-	    break
-	 end
-	 
-	 -- intented timeout?
-	 local now = os.time()
-	 if now - hb.last > c.DEFAULT_HEARTBEAT then
-	    logger.info("[amqp.consume] timeouts inc. [ts]: ",now)
-	    hb.timeouts = bor(lshift(hb.timeouts,1),1)
-	    hb.last = now
-	    local ok, err0 = frame.wire_heartbeat(self)
-	    if not ok then
-	       logger.error("[heartbeat]","pong error: " .. error_string(err0) .. "[ts]: ", hb.last)
-	    else
-	       logger.dbg("[heartbeat]","pong sent. [ts]: ",hb.last)
-	    end
-	 end
+         if err0 == "wantread" then
+            err = err0
+            set_state(self, c.state.CLOSED, c.state.CLOSED)
+            logger.error("[amqp.consume] SSL socket needs to dohandshake again.")
+            break
+         end
+         
+         -- intented timeout?
+         local now = os.time()
+         if now - hb.last > c.DEFAULT_HEARTBEAT then
+            logger.info("[amqp.consume] timeouts inc. [ts]: ",now)
+            hb.timeouts = bor(lshift(hb.timeouts,1),1)
+            hb.last = now
+            local ok, err0 = frame.wire_heartbeat(self)
+            if not ok then
+               logger.error("[heartbeat]","pong error: " .. error_string(err0) .. "[ts]: ", hb.last)
+            else
+               logger.dbg("[heartbeat]","pong sent. [ts]: ",hb.last)
+            end
+         end
 
-	 if timedout(self,hb.timeouts) then
-	    err = "heartbeat timeout"
-	    logger.error("[amqp.consume] timedout. [ts]: " .. now)
-	    break
-	 end
+         if timedout(self,hb.timeouts) then
+            err = "heartbeat timeout"
+            logger.error("[amqp.consume] timedout. [ts]: " .. now)
+            break
+         end
 
-	 logger.dbg("[amqp.consume] continue consuming " .. err0)
-	 goto continue
+         logger.dbg("[amqp.consume] continue consuming " .. err0)
+         goto continue
       end
       
       if f.type == c.frame.METHOD_FRAME then
 
-	 if f.class_id == c.class.CHANNEL then
-	    if f.method_id == c.method.channel.CLOSE then
-	       set_state(self, c.state.CLOSE_WAIT, self.connection_state)
-	       logger.info("[channel close method]", f.method.reply_code, f.method.reply_text)
-	       break
-	    end
-	 elseif f.class_id == c.class.CONNECTION then
-	    if f.method_id == c.method.connection.CLOSE then
-	       set_state(self, c.state.CLOSED, c.state.CLOSE_WAIT)
-	       logger.info("[connection close method]", f.method.reply_code, f.method.reply_text)
-	       break
-	    end
-	 elseif f.class_id == c.class.BASIC then
-	    if f.method_id == c.method.basic.DELIVER then
-	       if f.method ~= nil then
-		  logger.dbg("[basic_deliver] ", f.method)
-	       end
-	    end
-	 end
+         if f.class_id == c.class.CHANNEL then
+            if f.method_id == c.method.channel.CLOSE then
+               set_state(self, c.state.CLOSE_WAIT, self.connection_state)
+               logger.info("[channel close method]", f.method.reply_code, f.method.reply_text)
+               break
+            end
+         elseif f.class_id == c.class.CONNECTION then
+            if f.method_id == c.method.connection.CLOSE then
+               set_state(self, c.state.CLOSED, c.state.CLOSE_WAIT)
+               logger.info("[connection close method]", f.method.reply_code, f.method.reply_text)
+               break
+            end
+         elseif f.class_id == c.class.BASIC then
+            if f.method_id == c.method.basic.DELIVER then
+               if f.method ~= nil then
+                  logger.dbg("[basic_deliver] ", f.method)
+               end
+            end
+         end
       elseif f.type == c.frame.HEADER_FRAME then
-	 logger.dbg(format("[header] class_id: %d weight: %d, body_size: %d",
-			    f.class_id, f.weight, f.body_size))
-	 logger.dbg("[frame.properties]",f.properties)
+         logger.dbg(format("[header] class_id: %d weight: %d, body_size: %d",
+                            f.class_id, f.weight, f.body_size))
+         logger.dbg("[frame.properties]",f.properties)
       elseif f.type == c.frame.BODY_FRAME then
-	 
-	 if self.opts.callback then
-	    local status, err0 = pcall(self.opts.callback,f.body)
-	    if not status then
-	       logger.error("calling callback failed: " .. err0)
-	    end
-	 end
-	 logger.dbg("[body]",f.body)
+         
+         if self.opts.callback then
+            local status, err0 = pcall(self.opts.callback,f.body)
+            if not status then
+               logger.error("calling callback failed: " .. err0)
+            end
+         end
+         logger.dbg("[body]",f.body)
       elseif f.type == c.frame.HEARTBEAT_FRAME then
-	 hb.last = os.time()
-	 logger.info("[heartbeat]","ping received. [ts]: ",hb.last)
-	 hb.timeouts = band(lshift(hb.timeouts,1),0)
-	 local ok, err0 = frame.wire_heartbeat(self)
-	 if not ok then
-	    logger.error("[heartbeat]","pong error: " .. error_string(err0) .. "[ts]: ", hb.last)
-	 else
-	    logger.dbg("[heartbeat]","pong sent. [ts]: ",hb.last)
-	 end
+         hb.last = os.time()
+         logger.info("[heartbeat]","ping received. [ts]: ",hb.last)
+         hb.timeouts = band(lshift(hb.timeouts,1),0)
+         local ok, err0 = frame.wire_heartbeat(self)
+         if not ok then
+            logger.error("[heartbeat]","pong error: " .. error_string(err0) .. "[ts]: ", hb.last)
+         else
+            logger.dbg("[heartbeat]","pong sent. [ts]: ",hb.last)
+         end
       end
    end
 
@@ -640,7 +644,7 @@ function amqp:publish(payload, opts)
       logger.error("[amqp.publish] failed: " .. err)
       return nil, err
    end
-   
+
    return true
 end
 
@@ -663,8 +667,8 @@ function amqp:queue_declare(opts)
    end
    
    local f = frame.new_method_frame(self.channel or 1,
-				     c.class.QUEUE,
-				     c.method.queue.DECLARE)
+                                     c.class.QUEUE,
+                                     c.method.queue.DECLARE)
 
    f.method = {
       queue = opts.queue or self.opts.queue,
@@ -672,7 +676,7 @@ function amqp:queue_declare(opts)
       durable = default(opts.durable, false),
       exclusive = default(opts.exclusive, false),
       auto_delete = default(opts.auto_delete, true),
-      no_wait = default(opts.no_wait, true)
+      no_wait = default(opts.no_wait, false)
    }
    return frame.wire_method_frame(self,f)
 end
@@ -686,8 +690,8 @@ function amqp:queue_bind(opts)
    end
    
    local f = frame.new_method_frame(self.channel or 1,
-				     c.class.QUEUE,
-				     c.method.queue.BIND)
+                                     c.class.QUEUE,
+                                     c.method.queue.BIND)
 
    f.method = {
       queue = opts.queue or self.opts.queue,
@@ -708,13 +712,14 @@ function amqp:queue_unbind(opts)
    end
    
    local f = frame.new_method_frame(self.channel or 1,
-				     c.class.QUEUE,
-				     c.method.queue.UNBIND)
+                                     c.class.QUEUE,
+                                     c.method.queue.UNBIND)
 
    f.method = {
       queue = opts.queue or self.opts.queue,
       exchange = opts.exchange or self.opts.exchange,
       routing_key = opts.routing_key or "",
+      no_wait = default(opts.no_wait, false)
    }
 
    return frame.wire_method_frame(self,f)
@@ -729,8 +734,8 @@ function amqp:queue_delete(opts)
    end
 
    local f = frame.new_method_frame(self.channel or 1,
-				     c.class.QUEUE,
-				     c.method.queue.DELETE)
+                                     c.class.QUEUE,
+                                     c.method.queue.DELETE)
 
    f.method = {
       queue = opts.queue or self.opts.queue,
@@ -750,8 +755,8 @@ function amqp:exchange_declare(opts)
    opts = opts or {}
 
    local f = frame.new_method_frame(self.channel or 1,
-				     c.class.EXCHANGE,
-				     c.method.exchange.DECLARE)
+                                     c.class.EXCHANGE,
+                                     c.method.exchange.DECLARE)
 
 
    
@@ -783,8 +788,8 @@ function amqp:exchange_bind(opts)
    end
 
    local f = frame.new_method_frame(self.channel or 1,
-				     c.class.EXCHANGE,
-				     c.method.exchange.BIND)
+                                     c.class.EXCHANGE,
+                                     c.method.exchange.BIND)
    
    f.method = {
       destination = opts.destination,
@@ -811,8 +816,8 @@ function amqp:exchange_unbind(opts)
    end
 
    local f = frame.new_method_frame(self.channel or 1,
-				     c.class.EXCHANGE,
-				     c.method.exchange.UNBIND)
+                                     c.class.EXCHANGE,
+                                     c.method.exchange.UNBIND)
    
    f.method = {
       destination = opts.destination,
@@ -829,8 +834,8 @@ function amqp:exchange_delete(opts)
    opts = opts or {}
 
    local f = frame.new_method_frame(self.channel or 1,
-				     c.class.EXCHANGE,
-				     c.method.exchange.DELETE)
+                                     c.class.EXCHANGE,
+                                     c.method.exchange.DELETE)
    
    f.method = {
       exchange = opts.exchange or self.opts.exchange,
@@ -853,8 +858,8 @@ function amqp:basic_consume(opts)
    end
 
    local f = frame.new_method_frame(self.channel or 1,
-				     c.class.BASIC,
-				     c.method.basic.CONSUME)
+                                     c.class.BASIC,
+                                     c.method.basic.CONSUME)
 
    f.method = {
       queue = opts.queue or self.opts.queue,
@@ -873,8 +878,8 @@ function amqp:basic_publish(opts)
    opts = opts or {}
    
    local f = frame.new_method_frame(self.channel or 1,
-				     c.class.BASIC,
-				     c.method.basic.PUBLISH)
+                                     c.class.BASIC,
+                                     c.method.basic.PUBLISH)
    f.method = {
       exchange = opts.exchange or self.opts.exchange,
       routing_key = opts.routing_key or self.opts.routing_key or "",

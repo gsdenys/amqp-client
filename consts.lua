@@ -10,7 +10,7 @@ local amqp = {
    DEFAULT_CHANNEL           = 0,
    DEFAULT_FRAME_SIZE        = 131072,
    DEFAULT_MAX_CHANNELS      = 65535,
-   DEFAULT_HEARTBEAT         = 60,
+   DEFAULT_HEARTBEAT         = 30,
 
    PROTOCOL_VERSION_MAJOR    = 0,
    PROTOCOL_VERSION_MINOR    = 9,
