@@ -117,216 +117,244 @@ local methods_ = {
    [c.class.CONNECTION] = {
       name = "connection",
       --[[
-	 major octet
-	 minor octet
-	 properties field_table
-	 mechanism long_string
-	 locales long_string
+         major octet
+         minor octet
+         properties field_table
+         mechanism long_string
+         locales long_string
       --]]
       [c.method.connection.START] = {
-	 name = "start",
-	 r = function(b)
-	    local major = b:get_i8()
-	    local minor = b:get_i8()
-	    local props = b:get_field_table()
-	    local mechanism = b:get_long_string()
-	    local locales = b:get_long_string()
-	    return {
-	       major = major,
-	       minor = minor,
-	       props = props,
-	       mechanism = mechanism,
-	       locales = locales
-	    }
-	 end
+         name = "start",
+         r = function(b)
+            local major = b:get_i8()
+            local minor = b:get_i8()
+            local props = b:get_field_table()
+            local mechanism = b:get_long_string()
+            local locales = b:get_long_string()
+            return {
+               major = major,
+               minor = minor,
+               props = props,
+               mechanism = mechanism,
+               locales = locales
+            }
+         end
       },
       --[[
-	 client_properties field_table
-	 mechanism short_string
-	 response long_string
-	 locale short_string
+         client_properties field_table
+         mechanism short_string
+         response long_string
+         locale short_string
       --]]
       [c.method.connection.START_OK] = {
-	 name = "start_ok",
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_field_table(method.properties)
-	    b:put_short_string(method.mechanism)
-	    b:put_long_string(method.response)
-	    b:put_short_string(method.locale)
-	    return b:payload()
-	 end
-	      
+         name = "start_ok",
+         w = function(method)
+            local b = buffer.new()
+            b:put_field_table(method.properties)
+            b:put_short_string(method.mechanism)
+            b:put_long_string(method.response)
+            b:put_short_string(method.locale)
+            return b:payload()
+         end,
+         r = function(b)
+            local properties = b:get_field_table()
+            local mechanism = b:get_short_string()
+            local response = b:get_long_string()
+            local locale = b:get_short_string()
+            return {
+               properties = properties,
+               mechanism = mechanism,
+               response = response,
+               locale = locale
+            }
+         end
       },
       --[[
-	 secure long_string
+         secure long_string
       --]]
       [c.method.connection.SECURE] = {
-	 name = "secure"
+         name = "secure"
       },
       [c.method.connection.SECURE_OK] = {
-	 name = "secure_ok"
+         name = "secure_ok"
       },
       --[[
-	 channel_max i16
-	 frame_max i32
-	 beartbeat i16
+         channel_max i16
+         frame_max i32
+         beartbeat i16
       --]]
       [c.method.connection.TUNE] = {
-	 name = "tune",
-	 r = function(b)
-	    local f = {}
-	    f.channel_max = b:get_i16()
-	    f.frame_max = b:get_i32()
-	    f.heartbeat = b:get_i16()
-	    return f
-	 end
+         name = "tune",
+         r = function(b)
+            local f = {}
+            f.channel_max = b:get_i16()
+            f.frame_max = b:get_i32()
+            f.heartbeat = b:get_i16()
+            return f
+         end
       },
       --[[
-	 channel_max i16
-	 frame_max i32
-	 heartbeat i16
+         channel_max i16
+         frame_max i32
+         heartbeat i16
       --]]
       [c.method.connection.TUNE_OK] = {
-	 name = "tune_ok",
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_i16(method.channel_max)
-	    b:put_i32(method.frame_max)
-	    b:put_i16(method.heartbeat or c.DEFAULT_HEARTBEAT)
-	    return b:payload()
-	 end
+         name = "tune_ok",
+         w = function(method)
+            local b = buffer.new()
+            b:put_i16(method.channel_max)
+            b:put_i32(method.frame_max)
+            b:put_i16(method.heartbeat or c.DEFAULT_HEARTBEAT)
+            return b:payload()
+         end,
+         r = function(b)
+            local f = {}
+            f.channel_max = b:get_i16()
+            f.frame_max = b:get_i32()
+            f.heartbeat = b:get_i16()
+            return f
+         end         
       },
       --[[
-	 virtual_host short_string,
-	 reserved-1(capabilities) octet
-	 reserved-2 octet
+         virtual_host short_string,
+         reserved-1(capabilities) octet
+         reserved-2 octet
       --]]
       [c.method.connection.OPEN] = {
-	 name = "open",
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_short_string(method.virtual_host)
-	    b:put_i8(0) -- capabilities
-	    b:put_i8(1) -- insist?
-	    return b:payload()
-	 end
+         name = "open",
+         w = function(method)
+            local b = buffer.new()
+            b:put_short_string(method.virtual_host)
+            b:put_i8(0) -- capabilities
+            b:put_i8(1) -- insist?
+            return b:payload()
+         end,
+         r = function(b)
+            return {
+              virtual_host = b:get_short_string(),
+              capabilities = b:get_i8(),
+              insist = b:get_i8()
+            }
+         end
       },
       --[[
-	 reserved-1 short_string
+         reserved-1 short_string
       --]]
       [c.method.connection.OPEN_OK] = {
-	 name = "open_ok",
-	 r = function(b)
-	    return { reserved1 = b:get_short_string() }
-	 end
+         name = "open_ok",
+         r = function(b)
+            return { reserved1 = b:get_short_string() }
+         end
       },
       --[[
-	 reply_code i16
-	 reply_text short_string
-	 class_id i16
-	 method_id i16
+         reply_code i16
+         reply_text short_string
+         class_id i16
+         method_id i16
       --]]
       [c.method.connection.CLOSE] = {
-	 name = "close",
-	 r = decode_close_reply,
-	 w = encode_close_reply
+         name = "close",
+         r = decode_close_reply,
+         w = encode_close_reply
       },
       --[[
-	 
+         
       --]]
       [c.method.connection.CLOSE_OK] = {
-	 name = "close_ok",
-	 r = nop,
-	 w = nop
+         name = "close_ok",
+         r = nop,
+         w = nop
       },
       --[[
-	 reason short_string
+         reason short_string
       --]]
       [c.method.connection.BLOCKED] = {
-	 name = "blocked",
-	 r = function(b)
-	    return {reason = b:read_get_short_string()}
-	 end,
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_short_string(method.reason)
-	    return b:payload()
-	 end
+         name = "blocked",
+         r = function(b)
+            return {reason = b:read_get_short_string()}
+         end,
+         w = function(method)
+            local b = buffer.new()
+            b:put_short_string(method.reason)
+            return b:payload()
+         end
 
       },
       --[[
-	 
+         
       --]]
       [c.method.connection.UNBLOCKED] = {
-	 name = "unblocked",
-	 r = function(b)
-	    return nil
-	 end,
-	 w = function(method)
-	    return nil
-	 end
+         name = "unblocked",
+         r = function(b)
+            return nil
+         end,
+         w = function(method)
+            return nil
+         end
       }
    },
    [c.class.CHANNEL] = {
       name = "channel",
       [c.method.channel.OPEN] = {
-	 name = "open",
-	 w = function(method)
-	    -- reserved?
-	    return '\0'
-	 end
+         name = "open",
+         w = function(method)
+            -- reserved?
+            return '\0'
+         end,
+         r = function(method)
+            return '\0'
+         end
       },
       [c.method.channel.OPEN_OK] = {
-	 name = "open_ok",
-	 r = function(b)
-	    return {
-	       reserved1 = b:get_long_string()
-	    }
-	 end
+         name = "open_ok",
+         r = function(b)
+            return {
+               reserved1 = b:get_long_string()
+            }
+         end
       },
       --[[
-	 active bit
+         active bit
       --]]
       [c.method.channel.FLOW] = {
-	 name = "flow",
-	 r = function(b)
-	    return { active = b:get_bool() }
-	 end,
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_bool(method.active)
-	    return b:payload()
-	 end
+         name = "flow",
+         r = function(b)
+            return { active = b:get_bool() }
+         end,
+         w = function(method)
+            local b = buffer.new()
+            b:put_bool(method.active)
+            return b:payload()
+         end
 
       },
       [c.method.channel.FLOW_OK] = {
-	 name = "flow_ok",
-	 r = function(b)
-	    local bits = b:read_get_i8()
-	    return { active = band(bits,1) }
-	 end,
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_bool(method.active)
-	    return b:payload()
-	 end
+         name = "flow_ok",
+         r = function(b)
+            local bits = b:read_get_i8()
+            return { active = band(bits,1) }
+         end,
+         w = function(method)
+            local b = buffer.new()
+            b:put_bool(method.active)
+            return b:payload()
+         end
       },
       --[[
-	 reply_code i16
-	 reply_text short_string
-	 class_id i16
-	 method_id i16
+         reply_code i16
+         reply_text short_string
+         class_id i16
+         method_id i16
       --]]
       [c.method.channel.CLOSE] = {
-	 name = "close",
-	 r = decode_close_reply,
-	 w = encode_close_reply
+         name = "close",
+         r = decode_close_reply,
+         w = encode_close_reply
       },
       [c.method.channel.CLOSE_OK] = {
-	 name = "close_ok",
-	 r = nop,
-	 w = nop
+         name = "close_ok",
+         r = nop,
+         w = nop
       },
 
 
@@ -334,104 +362,104 @@ local methods_ = {
    [c.class.EXCHANGE] = {
       name = "exchange",
       --[[
-	 reserved1 i16
-	 exchange short_string
-	 type short_string
-	 passive bit
-	 durable bit
-	 auto_delete bit
-	 internal bit
-	 no_wait bit
-	 arguments table
+         reserved1 i16
+         exchange short_string
+         type short_string
+         passive bit
+         durable bit
+         auto_delete bit
+         internal bit
+         no_wait bit
+         arguments table
       --]]
       [c.method.exchange.DECLARE] = {
-	 name = "declare",
-	 w = function(method)
-	    local bits = 0
-	    local b = buffer.new()
-	    b:put_i16(method.reserved1 or 0)
-	    b:put_short_string(method.exchange)
-	    b:put_short_string(method.typ)
-	    b:put_i8(declare_exchange_flags(method))
-	    b:put_field_table(method.arguments or {})
-	    return b:payload()
-	 end
+         name = "declare",
+         w = function(method)
+            local bits = 0
+            local b = buffer.new()
+            b:put_i16(method.reserved1 or 0)
+            b:put_short_string(method.exchange)
+            b:put_short_string(method.typ)
+            b:put_i8(declare_exchange_flags(method))
+            b:put_field_table(method.arguments or {})
+            return b:payload()
+         end
       },
       [c.method.exchange.DECLARE_OK] = {
-	 name = "declare_ok",
-	 r = nop
+         name = "declare_ok",
+         r = nop
       },
       --[[
-	 reserved1 i16
-	 destination short_string
-	 source short_string
-	 routing_key short_string
-	 no_wait bit
-	 arguments table
+         reserved1 i16
+         destination short_string
+         source short_string
+         routing_key short_string
+         no_wait bit
+         arguments table
       --]]
       [c.method.exchange.BIND] = {
-	 name = "bind",
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_i16(method.reserved1 or 0)
-	    b:put_short_string(method.destination)
-	    b:put_short_string(method.source)
-	    b:put_short_string(method.routing_key)
-	    b:put_bool(method.no_wait)
-	    b:put_field_table(method.arguments or {})
-	    return b:payload()
-	    
-	 end
+         name = "bind",
+         w = function(method)
+            local b = buffer.new()
+            b:put_i16(method.reserved1 or 0)
+            b:put_short_string(method.destination)
+            b:put_short_string(method.source)
+            b:put_short_string(method.routing_key)
+            b:put_bool(method.no_wait)
+            b:put_field_table(method.arguments or {})
+            return b:payload()
+            
+         end
       },
       [c.method.exchange.BIND_OK] = {
-	 name = "bind_ok",
-	 r = nop
+         name = "bind_ok",
+         r = nop
       },
 
       --[[
 
       --]]
       [c.method.exchange.DELETE] = {
-	 name = "delete",
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_i16(method.reserved1 or 0)
-	    b:put_short_string(method.exchange)
-	    local bits = 0
-	    if method.if_unused then
-	       bits = bor(bits,1)
-	    end
-	    if method.no_wait then
-	       bits = bor(bits,2)
-	    end
-	    b:put_i8(bits)
-	    return b:payload()
-	 end
+         name = "delete",
+         w = function(method)
+            local b = buffer.new()
+            b:put_i16(method.reserved1 or 0)
+            b:put_short_string(method.exchange)
+            local bits = 0
+            if method.if_unused then
+               bits = bor(bits,1)
+            end
+            if method.no_wait then
+               bits = bor(bits,2)
+            end
+            b:put_i8(bits)
+            return b:payload()
+         end
       },
       [c.method.exchange.DELETE_OK] = {
-	 name = "delete_ok",
-	 r = nop
+         name = "delete_ok",
+         r = nop
       },
       --[[
-	 
+         
       --]]
       [c.method.exchange.UNBIND] = {
-	 name = "unbind",
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_i16(method.reserved1 or 0)
-	    b:put_short_string(method.destination)
-	    b:put_short_string(method.source)
-	    b:put_short_string(method.routing_key)
-	    b:put_bool(method.no_wait)
-	    b:put_field_table(method.arguments or {})
-	    return b:payload()
-	    
-	 end
+         name = "unbind",
+         w = function(method)
+            local b = buffer.new()
+            b:put_i16(method.reserved1 or 0)
+            b:put_short_string(method.destination)
+            b:put_short_string(method.source)
+            b:put_short_string(method.routing_key)
+            b:put_bool(method.no_wait)
+            b:put_field_table(method.arguments or {})
+            return b:payload()
+            
+         end
       },
       [c.method.exchange.UNBIND_OK] = {
-	 name = "unbind_ok",
-	 r = nop
+         name = "unbind_ok",
+         r = nop
       },
 
 
@@ -439,130 +467,130 @@ local methods_ = {
    [c.class.QUEUE] = {
       name = "queue",
       [c.method.queue.DECLARE] = {
-	 name = "declare",
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_i16(method.ticket or 0)
-	    b:put_short_string(method.queue)
-	    local bits = declare_queue_flags(method)
-	    b:put_i8(bits)
-	    b:put_field_table(method.arguments or {})
-	    return b:payload()
-	 end
+         name = "declare",
+         w = function(method)
+            local b = buffer.new()
+            b:put_i16(method.ticket or 0)
+            b:put_short_string(method.queue)
+            local bits = declare_queue_flags(method)
+            b:put_i8(bits)
+            b:put_field_table(method.arguments or {})
+            return b:payload()
+         end
       },
       [c.method.queue.DECLARE_OK] = {
-	 name = "declare_ok",
-	 r = function(b)
-	    local f = {}
-	    f.queue = b:get_short_string()
-	    f.message_count = b:get_i32()
-	    f.consumer_count = b:get_i32()
-	    return f
-	 end
+         name = "declare_ok",
+         r = function(b)
+            local f = {}
+            f.queue = b:get_short_string()
+            f.message_count = b:get_i32()
+            f.consumer_count = b:get_i32()
+            return f
+         end
       },
       [c.method.queue.BIND] = {
-	 name = "bind",
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_i16(method.reserved1 or 0)
-	    b:put_short_string(method.queue)
-	    b:put_short_string(method.exchange)
-	    b:put_short_string(method.routing_key or "")
-	    b:put_bool(method.no_wait)
-	    b:put_field_table(method.arguments or {})
-	    return b:payload()
-	 end
+         name = "bind",
+         w = function(method)
+            local b = buffer.new()
+            b:put_i16(method.reserved1 or 0)
+            b:put_short_string(method.queue)
+            b:put_short_string(method.exchange)
+            b:put_short_string(method.routing_key or "")
+            b:put_bool(method.no_wait)
+            b:put_field_table(method.arguments or {})
+            return b:payload()
+         end
       },
       [c.method.queue.BIND_OK] = {
-	 name = "bind_ok",
-	 r = nop
+         name = "bind_ok",
+         r = nop
       },
       --[[
-	 reserved1 i16
-	 queue short_string
-	 if_unused bit
-	 if_empty bit
-	 no_wait bit
+         reserved1 i16
+         queue short_string
+         if_unused bit
+         if_empty bit
+         no_wait bit
       --]]
       [c.method.queue.DELETE] = {
-	 name = "delete",
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_i16(method.reserved1 or 0)
-	    b:put_short_string(method.queue)
-	    local bits = 0
-	    if method.if_unused then
-	       bits = bor(bits,1)
-	    end
-	    if method.if_empty then
-	       bits = bor(bits,2)
-	    end
-	    if method.no_wait then
-	       bits = bor(bits, 4)
-	    end
-	    b:put_i8(bits)
-	    return b:payload()
-	    
-	 end
+         name = "delete",
+         w = function(method)
+            local b = buffer.new()
+            b:put_i16(method.reserved1 or 0)
+            b:put_short_string(method.queue)
+            local bits = 0
+            if method.if_unused then
+               bits = bor(bits,1)
+            end
+            if method.if_empty then
+               bits = bor(bits,2)
+            end
+            if method.no_wait then
+               bits = bor(bits, 4)
+            end
+            b:put_i8(bits)
+            return b:payload()
+            
+         end
       },
       --[[
-	 message_count i32
+         message_count i32
       --]]
       [c.method.queue.DELETE_OK] = {
-	 name = "delete_ok",
-	 r = function(b)
-	    return {
-	       message_count = b:get_i32()
-	    }
+         name = "delete_ok",
+         r = function(b)
+            return {
+               message_count = b:get_i32()
+            }
 
-	 end
+         end
       },
       [c.method.queue.UNBIND] = {
-	 name = "unbind",
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_i16(method.reserved1 or 0)
-	    b:put_short_string(method.queue)
-	    b:put_short_string(method.exchange)
-	    b:put_short_string(method.routing_key or "")
-	    b:put_field_table(method.arguments or {})
-	    return b:payload()
-	 end
+         name = "unbind",
+         w = function(method)
+            local b = buffer.new()
+            b:put_i16(method.reserved1 or 0)
+            b:put_short_string(method.queue)
+            b:put_short_string(method.exchange)
+            b:put_short_string(method.routing_key or "")
+            b:put_field_table(method.arguments or {})
+            return b:payload()
+         end
       },
       [c.method.queue.UNBIND_OK] = {
-	 name = "unbind_ok",
-	 r = nop
+         name = "unbind_ok",
+         r = nop
       },
       --[[
-	 reserved1 i16
-	 queue short_string
-	 no_wait bit
+         reserved1 i16
+         queue short_string
+         no_wait bit
       --]]
       [c.method.queue.PURGE] = {
-	 name = "queue_purge",
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_i16(method.reserved1 or 0)
-	    b:put_short_string(method.queue)
-	    local bits = 0
-	    if method.no_wait then
-	       bits = bor(bits, 1)
-	    end
-	    b:put_i8(bits)
-	    return b:payload()
-	    
-	 end
+         name = "queue_purge",
+         w = function(method)
+            local b = buffer.new()
+            b:put_i16(method.reserved1 or 0)
+            b:put_short_string(method.queue)
+            local bits = 0
+            if method.no_wait then
+               bits = bor(bits, 1)
+            end
+            b:put_i8(bits)
+            return b:payload()
+            
+         end
       },
       --[[
-	 message_count i32
+         message_count i32
       --]]
       [c.method.queue.PURGE_OK] = {
-	 name = "purge_ok",
-	 r = function(b)
-	    return {
-	       message_count = b:get_i32()
-	    }
-	 end
+         name = "purge_ok",
+         r = function(b)
+            return {
+               message_count = b:get_i32()
+            }
+         end
       },
 
 
@@ -570,317 +598,330 @@ local methods_ = {
    [c.class.BASIC] = {
       name = "basic",
       [c.method.basic.CONSUME] = {
-	 name = "consume",
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_i16(method.ticket or 0)
-	    b:put_short_string(method.queue)
-	    b:put_short_string(method.consumer_tag or "")
-	    b:put_i8(basic_consume_flags(method))
-	    b:put_field_table(method.arguments or {})
-	    return b:payload()
-	 end
+         name = "consume",
+         w = function(method)
+            local b = buffer.new()
+            b:put_i16(method.ticket or 0)
+            b:put_short_string(method.queue)
+            b:put_short_string(method.consumer_tag or "")
+            b:put_i8(basic_consume_flags(method))
+            b:put_field_table(method.arguments or {})
+            return b:payload()
+         end
       },
       [c.method.basic.CONSUME_OK] = {
-	 name = "consume_ok",
-	 r = function(b)
-	    return {
-	       consumer_tag = b:get_short_string()
-	    }
-	 end
+         name = "consume_ok",
+         r = function(b)
+            return {
+               consumer_tag = b:get_short_string()
+            }
+         end
       },
       --[[
-	 consumer_tag short_string
-	 delivery_tag short_string
-	 redelivered bool
-	 exchange short_string
-	 routing_key short_string
+         consumer_tag short_string
+         delivery_tag short_string
+         redelivered bool
+         exchange short_string
+         routing_key short_string
       --]]
       [c.method.basic.DELIVER] = {
-	 name = "deliver",
-	 r = function(b)
-	    local f = {}
-	    f.consumer_tag = b:get_short_string()
-	    f.delivery_tag = b:get_i64()
-	    f.redelivered = b:get_i8()
-	    f.exchange = b:get_short_string()
-	    f.routing_key = b:get_short_string()
-	    return f
-	 end,
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_short_string(method.consumer_tag)
-	    b:put_short_string(method.delivery_tag)
-	    b:put_bool(method.redelivered)
-	    b:put_short_string(method.exchange)
-	    b:put_short_string(method.routing_key)
-	    return b:payload()
-	 end
+         name = "deliver",
+         r = function(b)
+            local f = {}
+            f.consumer_tag = b:get_short_string()
+            f.delivery_tag = b:get_i64()
+            f.redelivered = b:get_i8()
+            f.exchange = b:get_short_string()
+            f.routing_key = b:get_short_string()
+            return f
+         end,
+         w = function(method)
+            local b = buffer.new()
+            b:put_short_string(method.consumer_tag)
+            b:put_short_string(method.delivery_tag)
+            b:put_bool(method.redelivered)
+            b:put_short_string(method.exchange)
+            b:put_short_string(method.routing_key)
+            return b:payload()
+         end
       },
 
       --[[
-	 prefectch_size i32
-	 prefetch_count i16
-	 global bit
+         prefectch_size i32
+         prefetch_count i16
+         global bit
       --]]
       [c.method.basic.QOS] = {
-	 name = "qos",
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_i32(method.prefetch_size)
-	    b:put_i16(method.prefetch_count)
-	    b:put_bool(method.global)
-	    return b:payload()
-	 end
+         name = "qos",
+         w = function(method)
+            local b = buffer.new()
+            b:put_i32(method.prefetch_size)
+            b:put_i16(method.prefetch_count)
+            b:put_bool(method.global)
+            return b:payload()
+         end
       },
       [c.method.basic.QOS_OK] = {
-	 name = "qos_ok",
-	 r = nop
+         name = "qos_ok",
+         r = nop
       },
       --[[
-	 consumer_tag short_string
-	 no_wait bit
+         consumer_tag short_string
+         no_wait bit
       --]]
       [c.method.basic.CANCEL] = {
-	 name = "cancel",
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_short_string(method.consumer_tag)
-	    b:put_bool(method.no_wait)
-	    return b:payload()
-	 end
+         name = "cancel",
+         w = function(method)
+            local b = buffer.new()
+            b:put_short_string(method.consumer_tag)
+            b:put_bool(method.no_wait)
+            return b:payload()
+         end
       },
       [c.method.basic.CANCEL_OK] = {
-	 name = "cancel_ok",
-	 r = function(b)
-	    return {
-	       consumer_tag = b:get_short_string()
-	    }
-	 end
+         name = "cancel_ok",
+         r = function(b)
+            return {
+               consumer_tag = b:get_short_string()
+            }
+         end
       },
       --[[
-	 reserved1 i16
-	 queue short_string
-	 no_ack bit
+         reserved1 i16
+         queue short_string
+         no_ack bit
       --]]
       [c.method.basic.GET] = {
-	 name = "get",
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_i16(method.reserved1 or 0)
-	    b:put_short_string(method.queue)
-	    b:put_bool(method.no_ack)
-	    return b:payload()
-	 end
+         name = "get",
+         w = function(method)
+            local b = buffer.new()
+            b:put_i16(method.reserved1 or 0)
+            b:put_short_string(method.queue)
+            b:put_bool(method.no_ack)
+            return b:payload()
+         end
       },
       --[[
-	 delivery_tag short_string
-	 redelivered bool
-	 exchange short_string
-	 routing_key short_string
-	 message_count i32
+         delivery_tag short_string
+         redelivered bool
+         exchange short_string
+         routing_key short_string
+         message_count i32
       --]]
       [c.method.basic.GET_OK] = {
-	 name = "get_ok",
-	 r = function(b)
-	    local f = {}
-	    f.delivery_tag = b:get_short_string()
-	    f.redelivered = b:get_bool()
-	    f.exchange = b:get_short_string()
-	    f.routing_key = b:get_short_string()
-	    f.message_count = b:get_i32()
-	    return f
-	 end
+         name = "get_ok",
+         r = function(b)
+            local f = {}
+            f.delivery_tag = b:get_short_string()
+            f.redelivered = b:get_bool()
+            f.exchange = b:get_short_string()
+            f.routing_key = b:get_short_string()
+            f.message_count = b:get_i32()
+            return f
+         end
       },
       --[[
-	 requeue bit
+         requeue bit
       --]]
       [c.method.basic.RECOVER] = {
-	 name = "recover",
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_bool(method.requeue)
-	    return b:payload()
-	 end
+         name = "recover",
+         w = function(method)
+            local b = buffer.new()
+            b:put_bool(method.requeue)
+            return b:payload()
+         end
       },
       [c.method.basic.RECOVER_OK] = {
-	 name = "recover_ok",
-	 r = nop
+         name = "recover_ok",
+         r = nop
       },
       [c.method.basic.RECOVER_ASYNC] = {
-	 name = "recover_async",
-	 w = function(b)
-	    local b = buffer.new()
-	    b:put_bool(method.requeue)
-	    return b:payload()
-	 end
+         name = "recover_async",
+         w = function(b)
+            local b = buffer.new()
+            b:put_bool(method.requeue)
+            return b:payload()
+         end
       },
       --[[
-	 reserved1 i16
-	 exchange short_string 
-	 routing_key short_string
-	 mandatory bit
-	 immediate bit
+         reserved1 i16
+         exchange short_string 
+         routing_key short_string
+         mandatory bit
+         immediate bit
       --]]
       [c.method.basic.PUBLISH] = {
-	 name = "publish",
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_i16(method.reserved1 or 0)
-	    b:put_short_string(method.exchange)
-	    b:put_short_string(method.routing_key)
-	    local bits = 0
-	    if method.mandatory then
-	       bits = bor(bits,1)
-	    end
-	    if method.immediate then
-	       bits = bor(bits,2)
-	    end
-	    b:put_i8(bits)
-	    return b:payload()
-	 end
+         name = "publish",
+         w = function(method)
+            local b = buffer.new()
+            b:put_i16(method.reserved1 or 0)
+            b:put_short_string(method.exchange)
+            b:put_short_string(method.routing_key)
+            local bits = 0
+            if method.mandatory then
+               bits = bor(bits,1)
+            end
+            if method.immediate then
+               bits = bor(bits,2)
+            end
+            b:put_i8(bits)
+            return b:payload()
+         end,
+         r = function(b)
+            local reserved1 = b:get_i16()
+            local exchange = b:get_short_string()
+            local routing_key = b:get_short_string()
+            local bits = b:get_i8()
+            return {
+              reserved1 = reserved1,
+              exchange = exchange,
+              routing_key = routing_key,
+              mandatory = band(bits,1),
+              immediate = band(bits,2)
+            }
+          end
       },
       --[[
-	 reply_code i16
-	 reply_text short_string
-	 exchange short_string
-	 routing_key short_string
+         reply_code i16
+         reply_text short_string
+         exchange short_string
+         routing_key short_string
       --]]
       [c.method.basic.RETURN] = {
-	 name = "return",
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_i16(method.reply_code)
-	    b:put_short_string(method.reply_text)
-	    b:put_short_string(method.exchange)
-	    b:wrie_short_string(method.routing_key)
-	    return b:payload()
-	 end
+         name = "return",
+         w = function(method)
+            local b = buffer.new()
+            b:put_i16(method.reply_code)
+            b:put_short_string(method.reply_text)
+            b:put_short_string(method.exchange)
+            b:wrie_short_string(method.routing_key)
+            return b:payload()
+         end
       },
       --[[
-	 reserved1 i16
+         reserved1 i16
       --]]
       [c.method.basic.GET_EMPTY] = {
-	 name = "get_emtpy",
-	 r = function(b)
-	    return {
-	       reserved1 = b:get_i16()
-	    }
-	 end
+         name = "get_emtpy",
+         r = function(b)
+            return {
+               reserved1 = b:get_i16()
+            }
+         end
       },
       --[[
-	 delivery_tag short_string
-	 multiple bit
+         delivery_tag short_string
+         multiple bit
       --]]
       [c.method.basic.ACK] = {
-	 name = "ack",
-	 r = function(b)
-	    local method = {}
-	    method.delivery_tag = b:get_short_string()
-	    method.multiple = b:get_bool()
-	    return method
-	 end,
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_short_string(method.delivery_tag)
-	    b:put_bool(method.multiple)
-	    return b:payload()
-	 end
+         name = "ack",
+         r = function(b)
+            local method = {}
+            method.delivery_tag = b:get_short_string()
+            method.multiple = b:get_bool()
+            return method
+         end,
+         w = function(method)
+            local b = buffer.new()
+            b:put_short_string(method.delivery_tag)
+            b:put_bool(method.multiple)
+            return b:payload()
+         end
       },
       --[[
-	 delivery_tag short_string
-	 multiple bit
-	 requeue bit
+         delivery_tag short_string
+         multiple bit
+         requeue bit
       --]]
       [c.method.basic.NACK] = {
-	 name = "nack",
-	 r = function(b)
-	    local f = {}
-	    f.delivery_tag = b:get_short_string()
-	    local v = b:get_i8()
-	    f.multiple = (band(v,0x1) ~= 0)
-	    f.requeue = (band(v,0x2) ~= 0)
-	    return f
-	 end,
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_short_string(method.delivery_tag)
-	    local bits = 0
-	    if method.multiple and method.multiple ~= 0 then
-	       bits = bor(bits, 1)
-	    end
-	    if method.requeue and method.requeue ~= 0 then
-	       bits = bor(bit, 2)
-	    end
-	    b:put_i16(bits)
-	    return b:payload()
-	 end
+         name = "nack",
+         r = function(b)
+            local f = {}
+            f.delivery_tag = b:get_short_string()
+            local v = b:get_i8()
+            f.multiple = (band(v,0x1) ~= 0)
+            f.requeue = (band(v,0x2) ~= 0)
+            return f
+         end,
+         w = function(method)
+            local b = buffer.new()
+            b:put_short_string(method.delivery_tag)
+            local bits = 0
+            if method.multiple and method.multiple ~= 0 then
+               bits = bor(bits, 1)
+            end
+            if method.requeue and method.requeue ~= 0 then
+               bits = bor(bit, 2)
+            end
+            b:put_i16(bits)
+            return b:payload()
+         end
       },
       --[[
-	 delivery_tag short_string
-	 requeue bit
+         delivery_tag short_string
+         requeue bit
       --]]
       [c.method.basic.REJECT] = {
-	 name = "reject",
-	 r = function(b)
-	    local f = {}
-	    f.delivery_tag = b:get_short_string()
-	    f.requeue = b:get_bool()
-	    return f
-	 end,
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_short_string(method.delivery_tag)
-	    b:put_bool(method.requeue)
-	    return b:payload()
-	 end
+         name = "reject",
+         r = function(b)
+            local f = {}
+            f.delivery_tag = b:get_short_string()
+            f.requeue = b:get_bool()
+            return f
+         end,
+         w = function(method)
+            local b = buffer.new()
+            b:put_short_string(method.delivery_tag)
+            b:put_bool(method.requeue)
+            return b:payload()
+         end
       },
 
    },
    [c.class.TX] = {
       name = "tx",
       [c.method.tx.SELECT] = {
-	 name = "select",
-	 w = nop
+         name = "select",
+         w = nop
       },
       [c.method.tx.SELECT_OK] = {
-	 name = "select_ok",
-	 r = nop
+         name = "select_ok",
+         r = nop
       },
       [c.method.tx.COMMIT] = {
-	 name = "commit",
-	 w = nop
+         name = "commit",
+         w = nop
       },
       [c.method.tx.COMMIT_OK] = {
-	 name = "commit_ok",
-	 r = nop
+         name = "commit_ok",
+         r = nop
       },
       [c.method.tx.ROLLBACK] = {
-	 name = "rollback",
-	 w = nop
+         name = "rollback",
+         w = nop
       },
       [c.method.tx.ROLLBACK_OK] = {
-	 name = "rollback_ok",
-	 r = nop
+         name = "rollback_ok",
+         r = nop
       },
 
    },
    [c.class.CONFIRM] = {
       name = "confirm",
       --[[
-	 no_wait bit
+         no_wait bit
       --]]
       [c.method.confirm.SELECT] = {
-	 name = "select",
-	 w = function(method)
-	    local b = buffer.new()
-	    b:put_bool(method.no_wait)
-	    return b:payload()
-	 end
+         name = "select",
+         w = function(method)
+            local b = buffer.new()
+            b:put_bool(method.no_wait)
+            return b:payload()
+         end
       },
       [c.method.confirm.SELECT_OK] = {
-	 name = "select_ok",
-	 r = nop
+         name = "select_ok",
+         r = nop
       },
    }
 }
@@ -1028,24 +1069,27 @@ function _M.consume_frame(ctx)
    if not data then
       return nil, err
    end
+
+   local ok,fe,err,typ
    
-   local b = buffer.new(data)
-   logger.dbg("[frame] 1st 7octets: ",b:hex_dump())
-   local typ = b:get_i8()
-   local channel = b:get_i16()
-   local size = b:get_i32()
-   local ok,fe,err
-   if typ == c.frame.METHOD_FRAME then
-      ok,fe,err = pcall(method_frame,ctx,channel,size)
-   elseif typ == c.frame.HEADER_FRAME then
-      ok,fe,err = pcall(header_frame,ctx,channel,size)
-   elseif typ == c.frame.BODY_FRAME then
-      ok,fe,err = pcall(body_frame,ctx,channel,size)
-   elseif typ == c.frame.HEARTBEAT_FRAME then
-      ok,fe,err = pcall(heartbeat_frame,ctx,channel,size)
-   else
-      ok = nil
-      err = "invalid frame type"
+   if not data:match("^AMQP") then
+     local b = buffer.new(data)
+     logger.dbg("[frame] 1st 7octets: ",b:hex_dump())
+     typ = b:get_i8()
+     local channel = b:get_i16()
+     local size = b:get_i32()
+     if typ == c.frame.METHOD_FRAME then
+        ok,fe,err = pcall(method_frame,ctx,channel,size)
+     elseif typ == c.frame.HEADER_FRAME then
+        ok,fe,err = pcall(header_frame,ctx,channel,size)
+     elseif typ == c.frame.BODY_FRAME then
+        ok,fe,err = pcall(body_frame,ctx,channel,size)
+     elseif typ == c.frame.HEARTBEAT_FRAME then
+        ok,fe,err = pcall(heartbeat_frame,ctx,channel,size)
+     else
+        ok = nil
+        err = "invalid frame type"
+     end
    end
 
    -- THE END --
@@ -1070,7 +1114,7 @@ function _M.consume_frame(ctx)
    end
    
    fe.type = typ
-   return fe
+   return fe, nil
 end
 
 --
@@ -1227,9 +1271,9 @@ local mt = { __index = _M }
 --
 function _M.new(typ,channel)
    return setmetatable({
-	 typ = typ,
-	 channel = channel
-		       }, mt)
+         typ = typ,
+         channel = channel
+                       }, mt)
 end
 
 function _M.new_method_frame(channel,class_id,method_id)
@@ -1306,6 +1350,7 @@ end
 
 function _M.wire_body_frame(ctx,payload)
    local frame = _M.new(c.frame.BODY_FRAME,ctx.opts.channel or 1)
+   frame.class_id = c.class.BASIC
    frame.body = payload
    local msg = frame:encode()
    local sock = ctx.sock
@@ -1342,27 +1387,27 @@ function _M.wire_method_frame(ctx,frame)
 
    logger.dbg("[wire_method_frame] wired a frame.", "[class_id]: ", frame.class_id, "[method_id]: ", frame.method_id)
    if frame.method ~= nil and not frame.method.no_wait then
-      local f = _M.consume_frame(ctx)
+      local f, err = _M.consume_frame(ctx)
       if f then
-	 logger.dbg("[wire_method_frame] channel: ",f.channel)
-	 if f.method then
-	    logger.dbg("[wire_method_frame] method: ",f.method)
-	 end
-	 
-	 if is_channel_close_received(f) then
-	    ctx.channel_state = c.state.CLOSE_WAIT
-	    ongoing(ctx,frame)
-	    return nil, f.method.reply_code, f.method.reply_text
-	 end
+         logger.dbg("[wire_method_frame] channel: ",f.channel)
+         if f.method then
+            logger.dbg("[wire_method_frame] method: ",f.method)
+         end
+         
+         if is_channel_close_received(f) then
+            ctx.channel_state = c.state.CLOSE_WAIT
+            ongoing(ctx,frame)
+            return nil, f.method.reply_code, f.method.reply_text
+         end
 
-	 if is_connection_close_received(f) then
-	    ctx.channel_state = c.state.CLOSED
-	    ctx.connection_state = c.state.CLOSE_WAIT
-	    ongoing(ctx,frame)
-	    return nil, f.method.reply_code, f.method.reply_text
-	 end
+         if is_connection_close_received(f) then
+            ctx.channel_state = c.state.CLOSED
+            ctx.connection_state = c.state.CLOSE_WAIT
+            ongoing(ctx,frame)
+            return nil, f.method.reply_code, f.method.reply_text
+         end
       end
-      return f
+      return f, err
    end
    return true
    

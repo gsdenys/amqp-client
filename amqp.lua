@@ -676,7 +676,7 @@ function amqp:queue_declare(opts)
       durable = default(opts.durable, false),
       exclusive = default(opts.exclusive, false),
       auto_delete = default(opts.auto_delete, true),
-      no_wait = default(opts.no_wait, false)
+      no_wait = default(opts.no_wait, true)
    }
    return frame.wire_method_frame(self,f)
 end

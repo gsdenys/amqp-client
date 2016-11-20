@@ -78,11 +78,11 @@ function logger.info(...)
 end
 
 function logger.dbg(...)
-   if level_ ~= DEBUG then
-      return
-   end
+   --if level_ ~= DEBUG then
+   --   return
+   --end
 
-   log(DEBUG,va_table_to_string({...}))
+   log(INFO,va_table_to_string({...}))
 end
 
 return logger
