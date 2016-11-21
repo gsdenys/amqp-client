@@ -1237,6 +1237,12 @@ local function heartbeat_frame(ctx,channel,size)
    return frame
 end
 
+local match = string.match
+
+if _G.ngx and _G.ngx.match then
+   match = ngx.match
+end
+
 function _M.consume_frame(ctx)
    local sock = ctx.sock
    local data,err = sock:receive(7)
@@ -1246,7 +1252,7 @@ function _M.consume_frame(ctx)
 
    local ok,fe,err,typ
    
-   if not data:match("^AMQP") then
+   if not match(data, "^AMQP") then
      local b = buffer.new(data)
      logger.dbg("[frame] 1st 7octets: ",b:hex_dump())
      typ = b:get_i8()
@@ -1264,6 +1270,8 @@ function _M.consume_frame(ctx)
         ok = nil
         err = "invalid frame type"
      end
+   else
+     err = "protocol"
    end
 
    -- THE END --
@@ -1274,7 +1282,10 @@ function _M.consume_frame(ctx)
 
    local tk = byte(ok0,1)
    if tk ~= c.frame.FRAME_END then
-      return nil,"malformed frame: no frame_end."
+      if err and err ~= "protocol" then
+        err = "malformed frame: no frame_end"
+      end
+      return nil, err
    end
 
    -- err captured by pcall, most likely, due to malformed frames
