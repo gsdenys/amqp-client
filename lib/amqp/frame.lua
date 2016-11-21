@@ -46,6 +46,22 @@ local function declare_exchange_flags(method)
    return bits
 end
 
+local function toboolean(n)
+  if n and n ~= 0 then
+    return true
+  end
+  return false
+end
+
+local function parse_exchange_flags(bits)
+  return {
+    passive = toboolean(band(bits, 1)),
+    auto_delete = toboolean(band(bits, 4)),
+    internal = toboolean(band(bits, 8)),
+    no_wait = toboolean(band(bits, 16))
+  }
+end
+
 local function declare_queue_flags(method)
    local bits = 0
    if method.passive then
@@ -71,6 +87,16 @@ local function declare_queue_flags(method)
    return bits
 end
 
+local function parse_queue_flags(bits)
+  return {
+    passive = toboolean(band(bits, 1)),
+    durable = toboolean(band(bits, 2)),
+    exclusive = toboolean(band(bits, 4)),
+    auto_delete = toboolean(band(bits, 8)),
+    no_wait = toboolean(band(bits, 16))
+  }
+end
+
 local function basic_consume_flags(method)
    local bits = 0
    if method.no_local then
@@ -89,6 +115,30 @@ local function basic_consume_flags(method)
       bits = bor(bits, 8)
    end
    return bits
+end
+
+local function parse_consume_flags(bits)
+  return {
+    no_local = toboolean(band(bits,1)),
+    no_ack = toboolean(band(bits,2)),
+    exclusive = toboolean(band(bits,4)),
+    no_wait = toboolean(band(bits,8))
+  }
+end
+
+local function parse_exchange_delete_flags(bits)
+  return {
+    if_unused = toboolean(band(bits,1)),
+    no_wait = toboolean(band(bits,2))
+  }
+end
+
+local function parse_queue_delete_flags(bits)
+  return {
+    if_unused = toboolean(band(bits,1)),
+    if_empty = toboolean(band(bits,2)),
+    no_wait = toboolean(band(bits,4))
+  }
 end
 
 local function decode_close_reply(b)
@@ -383,6 +433,15 @@ local methods_ = {
             b:put_i8(declare_exchange_flags(method))
             b:put_field_table(method.arguments or {})
             return b:payload()
+         end,
+         r = function(b)
+            return {
+              reserved1 = b:get_i16(),
+              exchange = b:get_short_string(),
+              typ = b:get_short_string(),
+              exchange_flags = parse_exchange_flags(b:get_i8()),
+              arguments = b:get_field_table()
+            }
          end
       },
       [c.method.exchange.DECLARE_OK] = {
@@ -408,7 +467,16 @@ local methods_ = {
             b:put_bool(method.no_wait)
             b:put_field_table(method.arguments or {})
             return b:payload()
-            
+         end,
+         r = function(b)
+           return {
+             reserved1 = b:get_i16(),
+             destination = b:get_short_string(),
+             source = b:get_short_string(),
+             routing_key = b:get_short_string(),
+             no_wait = b:get_bool(),
+             arguments = b:get_field_table()
+           }
          end
       },
       [c.method.exchange.BIND_OK] = {
@@ -434,6 +502,13 @@ local methods_ = {
             end
             b:put_i8(bits)
             return b:payload()
+         end,
+         r = function(b)
+           return {
+             reserved1 = b:get_i16(),
+             exchange = b:get_short_string(),
+             exchange_flags = parse_exchange_delete_flags(b:get_i8())
+           }
          end
       },
       [c.method.exchange.DELETE_OK] = {
@@ -454,7 +529,16 @@ local methods_ = {
             b:put_bool(method.no_wait)
             b:put_field_table(method.arguments or {})
             return b:payload()
-            
+         end,
+         r = function(b)
+           return {
+             reserved1 = b:get_i16(),
+             destination = b:get_short_string(),
+             source = b:get_short_string(),
+             routing_key = b:get_short_string(),
+             no_wait = b:get_bool(),
+             arguments = b:gut_field_table()
+           }
          end
       },
       [c.method.exchange.UNBIND_OK] = {
@@ -476,6 +560,14 @@ local methods_ = {
             b:put_i8(bits)
             b:put_field_table(method.arguments or {})
             return b:payload()
+         end,
+         r = function(b)
+           return {
+             ticket = b:get_i16(),
+             queue =  b:get_short_string(),
+             queue_flags = parse_queue_flags(b:get_i8()),
+             arguments = b:get_field_table()
+           }
          end
       },
       [c.method.queue.DECLARE_OK] = {
@@ -499,6 +591,16 @@ local methods_ = {
             b:put_bool(method.no_wait)
             b:put_field_table(method.arguments or {})
             return b:payload()
+         end,
+         r = function(b)
+           return {
+             reserved1 = b:get_i16(),
+             queue = b:get_short_string(),
+             exchange = b:get_short_string(),
+             routing_key = b:get_short_string(),
+             no_wait = b:get_bool(),
+             arguments = b:get_field_table()
+           }
          end
       },
       [c.method.queue.BIND_OK] = {
@@ -530,7 +632,13 @@ local methods_ = {
             end
             b:put_i8(bits)
             return b:payload()
-            
+         end,
+         r = function(b)
+           return {
+             reserved1 = b:get_i16(),
+             queue = b:get_short_string(),
+             queue_flags = parse_queue_delete_flags(b:get_i8()),
+           }
          end
       },
       --[[
@@ -542,7 +650,6 @@ local methods_ = {
             return {
                message_count = b:get_i32()
             }
-
          end
       },
       [c.method.queue.UNBIND] = {
@@ -555,6 +662,15 @@ local methods_ = {
             b:put_short_string(method.routing_key or "")
             b:put_field_table(method.arguments or {})
             return b:payload()
+         end,
+         r = function(b)
+           return {
+             reserved1 = b:get_i16(),
+             queue = b:get_short_string(),
+             exchange = b:get_short_string(),
+             routing_key = b:get_short_string(),
+             arguments = b:get_field_table()
+           }
          end
       },
       [c.method.queue.UNBIND_OK] = {
@@ -578,7 +694,13 @@ local methods_ = {
             end
             b:put_i8(bits)
             return b:payload()
-            
+         end,
+         r = function(b)
+           return {
+             reserved1 = b:get_i16(),
+             queue = b:get_short_string(),
+             queue_flags = { no_wait = toboolean(b:get_i8(), 1) }
+           }
          end
       },
       --[[
@@ -607,6 +729,15 @@ local methods_ = {
             b:put_i8(basic_consume_flags(method))
             b:put_field_table(method.arguments or {})
             return b:payload()
+         end,
+         r = function(b)
+           return {
+             ticket = b:get_i16(),
+             queue = b:get_short_string(),
+             consumer_tag = b:get_short_string(),
+             consume_flags = parse_consume_flags(b:get_i8()),
+             arguments = b:get_field_table()
+           }
          end
       },
       [c.method.basic.CONSUME_OK] = {
@@ -659,6 +790,13 @@ local methods_ = {
             b:put_i16(method.prefetch_count)
             b:put_bool(method.global)
             return b:payload()
+         end,
+         r = function(b)
+           return {
+             prefetch_size = b:get_i32(),
+             prefetch_count = b:get_i16(),
+             global = b:get_bool()
+           }
          end
       },
       [c.method.basic.QOS_OK] = {
@@ -676,6 +814,12 @@ local methods_ = {
             b:put_short_string(method.consumer_tag)
             b:put_bool(method.no_wait)
             return b:payload()
+         end,
+         r = function(b)
+           return {
+             consumer_tag = b:get_short_string(),
+             no_wait = b:get_bool()
+           }
          end
       },
       [c.method.basic.CANCEL_OK] = {
@@ -699,6 +843,13 @@ local methods_ = {
             b:put_short_string(method.queue)
             b:put_bool(method.no_ack)
             return b:payload()
+         end,
+         r = function(b)
+           return {
+             reserved1 = b:get_i16(),
+             queue = b:get_short_string(),
+             no_ack = b:get_bool()
+           }
          end
       },
       --[[
@@ -729,6 +880,11 @@ local methods_ = {
             local b = buffer.new()
             b:put_bool(method.requeue)
             return b:payload()
+         end,
+         r = function(b)
+           return {
+             requeue = b:get_bool()
+           }
          end
       },
       [c.method.basic.RECOVER_OK] = {
@@ -737,10 +893,15 @@ local methods_ = {
       },
       [c.method.basic.RECOVER_ASYNC] = {
          name = "recover_async",
-         w = function(b)
+         w = function(method)
             local b = buffer.new()
             b:put_bool(method.requeue)
             return b:payload()
+         end,
+         r = function(b)
+           return {
+             requeue = b:get_bool()
+           }
          end
       },
       --[[
@@ -794,8 +955,16 @@ local methods_ = {
             b:put_i16(method.reply_code)
             b:put_short_string(method.reply_text)
             b:put_short_string(method.exchange)
-            b:wrie_short_string(method.routing_key)
+            b:put_short_string(method.routing_key)
             return b:payload()
+         end,
+         r = function(b)
+            return {
+              reply_code = b:get_i16(),
+              reply_text = b:get_short_string(),
+              exchange = b:get_short_string(),
+              routing_key = b:get_short_string()
+            }
          end
       },
       --[[
@@ -917,6 +1086,11 @@ local methods_ = {
             local b = buffer.new()
             b:put_bool(method.no_wait)
             return b:payload()
+         end,
+         r = function(b)
+           return {
+             no_wait = b:get_bool()
+           }
          end
       },
       [c.method.confirm.SELECT_OK] = {
