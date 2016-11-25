@@ -624,7 +624,7 @@ end
 -- publisher
 --
 
-function amqp:publish(payload, opts)
+function amqp:publish(payload, opts, properties)
   
    local size = #payload
    local ok, err = amqp.basic_publish(self, opts)
@@ -633,7 +633,7 @@ function amqp:publish(payload, opts)
       return nil, err
    end
 
-   local ok, err = frame.wire_header_frame(self,size)
+   local ok, err = frame.wire_header_frame(self,size,properties)
    if not ok then
       logger.error("[amqp.publish] failed: " .. err)
       return nil, err

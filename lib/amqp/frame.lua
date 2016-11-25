@@ -1387,55 +1387,55 @@ local function encode_header_frame(frame)
    local flags = flags_mask(frame)
    b:put_i16(flags)
    if band(flags,c.flag.CONTENT_TYPE) ~= 0 then
-      b:put_short_string(f.properties.content_type)
+      b:put_short_string(frame.properties.content_type)
    end
 
    if band(flags,c.flag.CONTENT_ENCODING) ~= 0 then
-      b:put_short_string(f.properties.content_encoding)
+      b:put_short_string(frame.properties.content_encoding)
    end
 
    if band(flags,c.flag.HEADERS) ~= 0 then
-      b:put_field_table(f.properties.headers)
+      b:put_field_table(frame.properties.headers)
    end
 
    if band(flags,c.flag.DELIVERY_MODE) ~= 0 then
-      b:put_i8(f.properties.delivery_mode)
+      b:put_i8(frame.properties.delivery_mode)
    end
 
    if band(flags,c.flag.PRIORITY) ~= 0 then
-      b:put_i8(f.properties.priority)
+      b:put_i8(frame.properties.priority)
    end
 
    if band(flags,c.flag.CORRELATION_ID) ~= 0 then
-      b:put_short_string(f.properties.correlation_id)
+      b:put_short_string(frame.properties.correlation_id)
    end
    
    if band(flags,c.flag.REPLY_TO) ~= 0 then
-      b:put_short_string(f.properties.reply_to)
+      b:put_short_string(frame.properties.reply_to)
    end
    
    if band(flags,c.flag.EXPIRATION) ~= 0 then
-      b:put_short_string(f.properties.expiration)
+      b:put_short_string(frame.properties.expiration)
    end
    
    if band(flags,c.flag.MESSAGE_ID) ~= 0 then
-      b:put_short_string(f.properties.message_id)
+      b:put_short_string(frame.properties.message_id)
    end
    
    if band(flags,c.flag.TIMESTAMP) ~= 0 then
-      b:put_time_stamp(f.properties.timestamp)
+      b:put_time_stamp(frame.properties.timestamp)
    end
    
    if band(flags,c.flag.TYPE) ~= 0 then
-      b:put_short_string(f.properties.type)
+      b:put_short_string(frame.properties.type)
    end
    
    if band(flags,c.flag.USER_ID) ~= 0 then
-      b:put_short_string(f.properties.user_id)
+      b:put_short_string(frame.properties.user_id)
    end
 
    if band(flags,c.flag.APP_ID) ~= 0 then
-      b:put_short_string(f.properties.app_id)
+      b:put_short_string(frame.properties.app_id)
    end
 
    return encode_frame(c.frame.HEADER_FRAME,frame.channel,b:payload())
@@ -1518,11 +1518,12 @@ function _M.wire_heartbeat(ctx)
    return bytes
 end
 
-function _M.wire_header_frame(ctx,body_size)
+function _M.wire_header_frame(ctx,body_size,properties)
    local frame = _M.new(c.frame.HEADER_FRAME,ctx.opts.channel or 1)
    frame.class_id = c.class.BASIC
    frame.weight = 0
    frame.size = body_size
+   frame.properties = properties
    
    local msg = frame:encode()
    local sock = ctx.sock
