@@ -1250,28 +1250,24 @@ function _M.consume_frame(ctx)
       return nil, err
    end
 
-   local ok,fe,err,typ
+   local ok,fe,err
    
-   if not match(data, "^AMQP") then
-     local b = buffer.new(data)
-     logger.dbg("[frame] 1st 7octets: ",b:hex_dump())
-     typ = b:get_i8()
-     local channel = b:get_i16()
-     local size = b:get_i32()
-     if typ == c.frame.METHOD_FRAME then
-        ok,fe,err = pcall(method_frame,ctx,channel,size)
-     elseif typ == c.frame.HEADER_FRAME then
-        ok,fe,err = pcall(header_frame,ctx,channel,size)
-     elseif typ == c.frame.BODY_FRAME then
-        ok,fe,err = pcall(body_frame,ctx,channel,size)
-     elseif typ == c.frame.HEARTBEAT_FRAME then
-        ok,fe,err = pcall(heartbeat_frame,ctx,channel,size)
-     else
-        ok = nil
-        err = "invalid frame type"
-     end
+   local b = buffer.new(data)
+   logger.dbg("[frame] 1st 7octets: ",b:hex_dump())
+   local typ = b:get_i8()
+   local channel = b:get_i16()
+   local size = b:get_i32()
+   if typ == c.frame.METHOD_FRAME then
+      ok,fe,err = pcall(method_frame,ctx,channel,size)
+   elseif typ == c.frame.HEADER_FRAME then
+      ok,fe,err = pcall(header_frame,ctx,channel,size)
+   elseif typ == c.frame.BODY_FRAME then
+      ok,fe,err = pcall(body_frame,ctx,channel,size)
+   elseif typ == c.frame.HEARTBEAT_FRAME then
+      ok,fe,err = pcall(heartbeat_frame,ctx,channel,size)
    else
-     err = "protocol"
+      ok = nil
+      err = "invalid frame type"
    end
 
    -- THE END --
@@ -1282,10 +1278,10 @@ function _M.consume_frame(ctx)
 
    local tk = byte(ok0,1)
    if tk ~= c.frame.FRAME_END then
-      if err and err ~= "protocol" then
-        err = "malformed frame: no frame_end"
+      if match(data, "^AMQP") then
+        return nil, "connect event"
       end
-      return nil, err
+      return nil,"malformed frame: no frame_end"
    end
 
    -- err captured by pcall, most likely, due to malformed frames
