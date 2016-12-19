@@ -264,15 +264,15 @@ end
 local fields_ = {
    t = {
       r = function (self)
-	 local b =  self:get_i8()
-	 return b ~= 0
+        local b = self:get_i8()
+        return b ~= 0
       end,
       w = function (self,val)
-	 local b = 0
-	 if val ~= 0 then
-	    b = 1
-	 end
-	 self:put_i8(b)
+        local b = 0
+        if val ~= 0 then
+            b = 1
+        end
+        self:put_i8(b)
       end
    },
    b = {
@@ -339,9 +339,13 @@ local fields_ = {
       r = _M.get_field_table,
       w = _M.put_field_table
    },
+   x = {
+      r = _M.get_long_string,
+      w = _M.put_long_string
+   },
    V = {
       r = function(self)
-	 return nil
+        return nil
       end,
       w = nil
    }

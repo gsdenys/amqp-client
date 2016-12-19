@@ -97,7 +97,7 @@ local amqp = {
          RECOVER_ASYNC  = 0x64,
          RECOVER    = 0x6E,
          RECOVER_OK = 0x6F,
-         NACK  = 0x78,
+         NACK       = 0x78,
       },
       tx = {
          SELECT      = 0x0A,
