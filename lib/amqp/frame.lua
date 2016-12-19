@@ -435,8 +435,9 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
+            local _,reserved1 = pcall(buffer.get_i16, b)
             return {
-              reserved1 = b:get_i16(),
+              reserved1 = reserved1 or 0,
               exchange = b:get_short_string(),
               typ = b:get_short_string(),
               exchange_flags = parse_exchange_flags(b:get_i8()),
@@ -469,8 +470,9 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
+           local _,reserved1 = pcall(buffer.get_i16, b)
            return {
-             reserved1 = b:get_i16(),
+             reserved1 = reserved1 or 0,
              destination = b:get_short_string(),
              source = b:get_short_string(),
              routing_key = b:get_short_string(),
@@ -504,8 +506,9 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
+           local _,reserved1 = pcall(buffer.get_i16, b)
            return {
-             reserved1 = b:get_i16(),
+             reserved1 = reserved1 or 0,
              exchange = b:get_short_string(),
              exchange_flags = parse_exchange_delete_flags(b:get_i8())
            }
@@ -531,8 +534,9 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
+           local _,reserved1 = pcall(buffer.get_i16, b)
            return {
-             reserved1 = b:get_i16(),
+             reserved1 = reserved1 or 0,
              destination = b:get_short_string(),
              source = b:get_short_string(),
              routing_key = b:get_short_string(),
@@ -593,8 +597,9 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
+           local _,reserved1 = pcall(buffer.get_i16, b)
            return {
-             reserved1 = b:get_i16(),
+             reserved1 = reserved1 or 0,
              queue = b:get_short_string(),
              exchange = b:get_short_string(),
              routing_key = b:get_short_string(),
@@ -634,8 +639,9 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
+           local _,reserved1 = pcall(buffer.get_i16, b)
            return {
-             reserved1 = b:get_i16(),
+             reserved1 = reserved1 or 0,
              queue = b:get_short_string(),
              queue_flags = parse_queue_delete_flags(b:get_i8()),
            }
@@ -664,8 +670,9 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
+           local _,reserved1 = pcall(buffer.get_i16, b)
            return {
-             reserved1 = b:get_i16(),
+             reserved1 = reserved1 or 0,
              queue = b:get_short_string(),
              exchange = b:get_short_string(),
              routing_key = b:get_short_string(),
@@ -696,8 +703,9 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
+           local _,reserved1 = pcall(buffer.get_i16, b)
            return {
-             reserved1 = b:get_i16(),
+             reserved1 = reserved1 or 0,
              queue = b:get_short_string(),
              queue_flags = { no_wait = toboolean(b:get_i8(), 1) }
            }
@@ -845,8 +853,9 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
+           local _,reserved1 = pcall(buffer.get_i16, b)
            return {
-             reserved1 = b:get_i16(),
+             reserved1 = reserved1 or 0,
              queue = b:get_short_string(),
              no_ack = b:get_bool()
            }
@@ -929,12 +938,12 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
-            local reserved1 = b:get_i16()
+            local _,reserved1 = pcall(buffer.get_i16, b)
             local exchange = b:get_short_string()
             local routing_key = b:get_short_string()
             local bits = b:get_i8()
             return {
-              reserved1 = reserved1,
+              reserved1 = reserved1 or 0,
               exchange = exchange,
               routing_key = routing_key,
               mandatory = band(bits,1),
@@ -973,8 +982,9 @@ local methods_ = {
       [c.method.basic.GET_EMPTY] = {
          name = "get_emtpy",
          r = function(b)
+            local _,reserved1 = pcall(buffer.get_i16, b)
             return {
-               reserved1 = b:get_i16()
+               reserved1 = reserved1 or 0
             }
          end
       },
@@ -1051,27 +1061,33 @@ local methods_ = {
       name = "tx",
       [c.method.tx.SELECT] = {
          name = "select",
+         r = nop,
          w = nop
       },
       [c.method.tx.SELECT_OK] = {
          name = "select_ok",
-         r = nop
+         r = nop,
+         w = nop
       },
       [c.method.tx.COMMIT] = {
          name = "commit",
+         r = nop,
          w = nop
       },
       [c.method.tx.COMMIT_OK] = {
          name = "commit_ok",
-         r = nop
+         r = nop,
+         w = nop
       },
       [c.method.tx.ROLLBACK] = {
          name = "rollback",
+         r = nop,
          w = nop
       },
       [c.method.tx.ROLLBACK_OK] = {
          name = "rollback_ok",
-         r = nop
+         r = nop,
+         w = nop
       },
 
    },
