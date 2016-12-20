@@ -20,6 +20,7 @@ local byte = string.byte
 local format = string.format
 
 local debug = logger.dbg
+local is_debug_enabled = logger.is_debug_enabled
 
 local _M = {}
 
@@ -1113,7 +1114,9 @@ local function method_frame(ctx,channel,size)
    end
 
    local b = buffer.new(data)
-   debug("[method_frame]",b:hex_dump())
+   if is_debug_enabled() then
+      debug("[method_frame]",b:hex_dump())
+   end
    local class_id = b:get_i16()
    local method_id = b:get_i16()
    frame.class_id = class_id
@@ -1147,7 +1150,9 @@ local function header_frame(ctx,channel,size)
    end
 
    local b = buffer.new(data)
-   debug("[header_frame]",b:hex_dump())
+   if is_debug_enabled() then
+      debug("[header_frame]",b:hex_dump())
+   end
 
    f.class_id = b:get_i16()
    f.weight = b:get_i16()
@@ -1222,7 +1227,9 @@ local function body_frame(ctx,channel,size)
    end
    local b = buffer.new(data)
 
-   debug("[body_frame]",b:hex_dump())
+   if is_debug_enabled() then
+      debug("[body_frame]",b:hex_dump())
+   end
    frame.body = b:payload()
    return frame
 end
@@ -1252,7 +1259,9 @@ function _M.consume_frame(ctx)
    local ok,fe,err
 
    local b = buffer.new(data)
-   debug("[frame] 1st 7octets: ",b:hex_dump())
+   if is_debug_enabled() then
+      debug("[frame] 1st 7octets: ",b:hex_dump())
+   end
    local typ = b:get_i8()
    local channel = b:get_i16()
    local size = b:get_i32()

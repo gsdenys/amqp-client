@@ -85,5 +85,9 @@ function logger.dbg(...)
    log(DEBUG,va_table_to_string({...}))
 end
 
+function logger.is_debug_enabled()
+   return level_ == DEBUG
+end
+
 return logger
 
