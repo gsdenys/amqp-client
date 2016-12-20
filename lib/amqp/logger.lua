@@ -43,10 +43,10 @@ local function to_string(v)
    local s = "["
    for k,v in pairs(v) do
       if k ~= nil then
-	 s = s .. to_string(k) .. ":"
+         s = s .. to_string(k) .. ":"
       end
       if v ~= nil then
-	 s = s .. to_string(v)
+         s = s .. to_string(v)
       end
       s = s .. " "
    end

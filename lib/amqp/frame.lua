@@ -19,14 +19,17 @@ local bor = bit.bor
 local byte = string.byte
 local format = string.format
 
+local debug = logger.dbg
+
 local _M = {}
 
 local function declare_exchange_flags(method)
    local bits = 0
+
    if method.passive then
       bits = bor(bits,1)
    end
-   
+
    if method.durable then
       bits = bor(bits, 2)
    end
@@ -42,7 +45,7 @@ local function declare_exchange_flags(method)
    if method.no_wait then
       bits = bor(bits, 16)
    end
-   
+
    return bits
 end
 
@@ -54,20 +57,21 @@ local function toboolean(n)
 end
 
 local function parse_exchange_flags(bits)
-  return {
-    passive = toboolean(band(bits, 1)),
-    auto_delete = toboolean(band(bits, 4)),
-    internal = toboolean(band(bits, 8)),
-    no_wait = toboolean(band(bits, 16))
-  }
+  local flags = {}
+  flags.passive = toboolean(band(bits, 1))
+  flags.auto_delete = toboolean(band(bits, 4))
+  flags.internal = toboolean(band(bits, 8))
+  flags.no_wait = toboolean(band(bits, 16))
+  return flags
 end
 
 local function declare_queue_flags(method)
    local bits = 0
+
    if method.passive then
       bits = bor(bits,1)
    end
-   
+
    if method.durable then
       bits = bor(bits, 2)
    end
@@ -83,22 +87,23 @@ local function declare_queue_flags(method)
    if method.no_wait then
       bits = bor(bits, 16)
    end
-   
+
    return bits
 end
 
 local function parse_queue_flags(bits)
-  return {
-    passive = toboolean(band(bits, 1)),
-    durable = toboolean(band(bits, 2)),
-    exclusive = toboolean(band(bits, 4)),
-    auto_delete = toboolean(band(bits, 8)),
-    no_wait = toboolean(band(bits, 16))
-  }
+   local flags = {}
+   flags.passive = toboolean(band(bits, 1))
+   flags.durable = toboolean(band(bits, 2))
+   flags.exclusive = toboolean(band(bits, 4))
+   flags.auto_delete = toboolean(band(bits, 8))
+   flags.no_wait = toboolean(band(bits, 16))
+   return flags
 end
 
 local function basic_consume_flags(method)
    local bits = 0
+
    if method.no_local then
       bits = bor(bits,1)
    end
@@ -114,31 +119,32 @@ local function basic_consume_flags(method)
    if method.no_wait then
       bits = bor(bits, 8)
    end
+
    return bits
 end
 
 local function parse_consume_flags(bits)
-  return {
-    no_local = toboolean(band(bits,1)),
-    no_ack = toboolean(band(bits,2)),
-    exclusive = toboolean(band(bits,4)),
-    no_wait = toboolean(band(bits,8))
-  }
+   local flags = {}
+   flags.no_local = toboolean(band(bits,1))
+   flags.no_ack = toboolean(band(bits,2))
+   flags.exclusive = toboolean(band(bits,4))
+   flags.no_wait = toboolean(band(bits,8))
+   return flags
 end
 
 local function parse_exchange_delete_flags(bits)
-  return {
-    if_unused = toboolean(band(bits,1)),
-    no_wait = toboolean(band(bits,2))
-  }
+   local flags = {}
+   flags.if_unused = toboolean(band(bits,1))
+   flags.no_wait = toboolean(band(bits,2))
+   return flags
 end
 
 local function parse_queue_delete_flags(bits)
-  return {
-    if_unused = toboolean(band(bits,1)),
-    if_empty = toboolean(band(bits,2)),
-    no_wait = toboolean(band(bits,4))
-  }
+   local flags = {}
+   flags.if_unused = toboolean(band(bits,1))
+   flags.if_empty = toboolean(band(bits,2))
+   flags.no_wait = toboolean(band(bits,4))
+   return flags
 end
 
 local function decode_close_reply(b)
@@ -176,18 +182,13 @@ local methods_ = {
       [c.method.connection.START] = {
          name = "start",
          r = function(b)
-            local major = b:get_i8()
-            local minor = b:get_i8()
-            local props = b:get_field_table()
-            local mechanism = b:get_long_string()
-            local locales = b:get_long_string()
-            return {
-               major = major,
-               minor = minor,
-               props = props,
-               mechanism = mechanism,
-               locales = locales
-            }
+            local f = {}
+            f.major = b:get_i8()
+            f.minor = b:get_i8()
+            f.props = b:get_field_table()
+            f.mechanism = b:get_long_string()
+            f.ocales = b:get_long_string()
+            return f
          end
       },
       --[[
@@ -207,16 +208,12 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
-            local properties = b:get_field_table()
-            local mechanism = b:get_short_string()
-            local response = b:get_long_string()
-            local locale = b:get_short_string()
-            return {
-               properties = properties,
-               mechanism = mechanism,
-               response = response,
-               locale = locale
-            }
+            local f = {}
+            f.properties = b:get_field_table()
+            f.mechanism = b:get_short_string()
+            f.response = b:get_long_string()
+            f.locale = b:get_short_string()
+            return f
          end
       },
       --[[
@@ -263,7 +260,7 @@ local methods_ = {
             f.frame_max = b:get_i32()
             f.heartbeat = b:get_i16()
             return f
-         end         
+         end
       },
       --[[
          virtual_host short_string,
@@ -280,11 +277,11 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
-            return {
-              virtual_host = b:get_short_string(),
-              capabilities = b:get_i8(),
-              insist = b:get_i8()
-            }
+            local f = {}
+            f.virtual_host = b:get_short_string()
+            f.capabilities = b:get_i8()
+            f.insist = b:get_i8()
+            return f
          end
       },
       --[[
@@ -308,7 +305,6 @@ local methods_ = {
          w = encode_close_reply
       },
       --[[
-         
       --]]
       [c.method.connection.CLOSE_OK] = {
          name = "close_ok",
@@ -328,10 +324,8 @@ local methods_ = {
             b:put_short_string(method.reason)
             return b:payload()
          end
-
       },
       --[[
-         
       --]]
       [c.method.connection.UNBLOCKED] = {
          name = "unblocked",
@@ -406,8 +400,6 @@ local methods_ = {
          r = nop,
          w = nop
       },
-
-
    },
    [c.class.EXCHANGE] = {
       name = "exchange",
@@ -435,14 +427,14 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
+            local f = {}
             local _,reserved1 = pcall(buffer.get_i16, b)
-            return {
-              reserved1 = reserved1 or 0,
-              exchange = b:get_short_string(),
-              typ = b:get_short_string(),
-              exchange_flags = parse_exchange_flags(b:get_i8()),
-              arguments = b:get_field_table()
-            }
+            f.reserved1 = reserved1 or 0
+            f.exchange = b:get_short_string()
+            f.typ = b:get_short_string()
+            f.exchange_flags = parse_exchange_flags(b:get_i8())
+            f.arguments = b:get_field_table()
+            return f
          end
       },
       [c.method.exchange.DECLARE_OK] = {
@@ -470,24 +462,22 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
-           local _,reserved1 = pcall(buffer.get_i16, b)
-           return {
-             reserved1 = reserved1 or 0,
-             destination = b:get_short_string(),
-             source = b:get_short_string(),
-             routing_key = b:get_short_string(),
-             no_wait = b:get_bool(),
-             arguments = b:get_field_table()
-           }
+            local f = {}
+            local _,reserved1 = pcall(buffer.get_i16, b)
+            f.reserved1 = reserved1 or 0
+            f.destination = b:get_short_string()
+            f.source = b:get_short_string()
+            f.routing_key = b:get_short_string()
+            f.no_wait = b:get_bool()
+            f.arguments = b:get_field_table()
+            return f
          end
       },
       [c.method.exchange.BIND_OK] = {
          name = "bind_ok",
          r = nop
       },
-
       --[[
-
       --]]
       [c.method.exchange.DELETE] = {
          name = "delete",
@@ -506,12 +496,12 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
-           local _,reserved1 = pcall(buffer.get_i16, b)
-           return {
-             reserved1 = reserved1 or 0,
-             exchange = b:get_short_string(),
-             exchange_flags = parse_exchange_delete_flags(b:get_i8())
-           }
+            local f = {}
+            local _,reserved1 = pcall(buffer.get_i16, b)
+            f.reserved1 = reserved1 or 0
+            f.exchange = b:get_short_string()
+            f.exchange_flags = parse_exchange_delete_flags(b:get_i8())
+            return f
          end
       },
       [c.method.exchange.DELETE_OK] = {
@@ -519,7 +509,6 @@ local methods_ = {
          r = nop
       },
       --[[
-         
       --]]
       [c.method.exchange.UNBIND] = {
          name = "unbind",
@@ -534,23 +523,21 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
-           local _,reserved1 = pcall(buffer.get_i16, b)
-           return {
-             reserved1 = reserved1 or 0,
-             destination = b:get_short_string(),
-             source = b:get_short_string(),
-             routing_key = b:get_short_string(),
-             no_wait = b:get_bool(),
-             arguments = b:gut_field_table()
-           }
+            local f = {}
+            local _,reserved1 = pcall(buffer.get_i16, b)
+            f.reserved1 = reserved1 or 0
+            f.destination = b:get_short_string()
+            f.source = b:get_short_string()
+            f.routing_key = b:get_short_string()
+            f.no_wait = b:get_bool()
+            f.arguments = b:gut_field_table()
+            return f
          end
       },
       [c.method.exchange.UNBIND_OK] = {
          name = "unbind_ok",
          r = nop
       },
-
-
    },
    [c.class.QUEUE] = {
       name = "queue",
@@ -566,12 +553,12 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
-           return {
-             ticket = b:get_i16(),
-             queue =  b:get_short_string(),
-             queue_flags = parse_queue_flags(b:get_i8()),
-             arguments = b:get_field_table()
-           }
+            local f = {}
+            f.ticket = b:get_i16()
+            f.queue =  b:get_short_string()
+            f.queue_flags = parse_queue_flags(b:get_i8())
+            f.arguments = b:get_field_table()
+            return f
          end
       },
       [c.method.queue.DECLARE_OK] = {
@@ -597,15 +584,15 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
-           local _,reserved1 = pcall(buffer.get_i16, b)
-           return {
-             reserved1 = reserved1 or 0,
-             queue = b:get_short_string(),
-             exchange = b:get_short_string(),
-             routing_key = b:get_short_string(),
-             no_wait = b:get_bool(),
-             arguments = b:get_field_table()
-           }
+            local f = {}
+            local _,reserved1 = pcall(buffer.get_i16, b)
+            f.reserved1 = reserved1 or 0
+            f.queue = b:get_short_string()
+            f.exchange = b:get_short_string()
+            f.routing_key = b:get_short_string()
+            f.no_wait = b:get_bool()
+            f.arguments = b:get_field_table()
+            return f
          end
       },
       [c.method.queue.BIND_OK] = {
@@ -639,12 +626,12 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
-           local _,reserved1 = pcall(buffer.get_i16, b)
-           return {
-             reserved1 = reserved1 or 0,
-             queue = b:get_short_string(),
-             queue_flags = parse_queue_delete_flags(b:get_i8()),
-           }
+            local f = {}
+            local _,reserved1 = pcall(buffer.get_i16, b)
+            f.reserved1 = reserved1 or 0
+            f.queue = b:get_short_string()
+            f.queue_flags = parse_queue_delete_flags(b:get_i8())
+            return f
          end
       },
       --[[
@@ -670,14 +657,14 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
-           local _,reserved1 = pcall(buffer.get_i16, b)
-           return {
-             reserved1 = reserved1 or 0,
-             queue = b:get_short_string(),
-             exchange = b:get_short_string(),
-             routing_key = b:get_short_string(),
-             arguments = b:get_field_table()
-           }
+            local f = {}
+            local _,reserved1 = pcall(buffer.get_i16, b)
+            f.reserved1 = reserved1 or 0
+            f.queue = b:get_short_string()
+            f.exchange = b:get_short_string()
+            f.routing_key = b:get_short_string()
+            f.arguments = b:get_field_table()
+            return f
          end
       },
       [c.method.queue.UNBIND_OK] = {
@@ -703,12 +690,12 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
-           local _,reserved1 = pcall(buffer.get_i16, b)
-           return {
-             reserved1 = reserved1 or 0,
-             queue = b:get_short_string(),
-             queue_flags = { no_wait = toboolean(b:get_i8(), 1) }
-           }
+            local f = {}
+            local _,reserved1 = pcall(buffer.get_i16, b)
+            f.reserved1 = reserved1 or 0
+            f.queue = b:get_short_string()
+            f.queue_flags = { no_wait = toboolean(b:get_i8(), 1) }
+            return f
          end
       },
       --[[
@@ -739,13 +726,13 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
-           return {
-             ticket = b:get_i16(),
-             queue = b:get_short_string(),
-             consumer_tag = b:get_short_string(),
-             consume_flags = parse_consume_flags(b:get_i8()),
-             arguments = b:get_field_table()
-           }
+            local f = {}
+            f.ticket = b:get_i16()
+            f.queue = b:get_short_string()
+            f.consumer_tag = b:get_short_string()
+            f.consume_flags = parse_consume_flags(b:get_i8())
+            f.arguments = b:get_field_table()
+            return f
          end
       },
       [c.method.basic.CONSUME_OK] = {
@@ -784,7 +771,6 @@ local methods_ = {
             return b:payload()
          end
       },
-
       --[[
          prefectch_size i32
          prefetch_count i16
@@ -800,11 +786,11 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
-           return {
-             prefetch_size = b:get_i32(),
-             prefetch_count = b:get_i16(),
-             global = b:get_bool()
-           }
+            local f = {}
+            f.prefetch_size = b:get_i32()
+            f.prefetch_count = b:get_i16()
+            f.global = b:get_bool()
+            return f
          end
       },
       [c.method.basic.QOS_OK] = {
@@ -824,10 +810,10 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
-           return {
-             consumer_tag = b:get_short_string(),
-             no_wait = b:get_bool()
-           }
+            local f = {}
+            f.consumer_tag = b:get_short_string()
+            f.no_wait = b:get_bool()
+            return f
          end
       },
       [c.method.basic.CANCEL_OK] = {
@@ -853,12 +839,12 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
-           local _,reserved1 = pcall(buffer.get_i16, b)
-           return {
-             reserved1 = reserved1 or 0,
-             queue = b:get_short_string(),
-             no_ack = b:get_bool()
-           }
+            local f = {}
+            local _,reserved1 = pcall(buffer.get_i16, b)
+            f.reserved1 = reserved1 or 0
+            f.queue = b:get_short_string()
+            f.no_ack = b:get_bool()
+            return f
          end
       },
       --[[
@@ -891,9 +877,9 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
-           return {
-             requeue = b:get_bool()
-           }
+            return {
+               requeue = b:get_bool()
+            }
          end
       },
       [c.method.basic.RECOVER_OK] = {
@@ -908,9 +894,9 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
-           return {
-             requeue = b:get_bool()
-           }
+            return {
+               requeue = b:get_bool()
+            }
          end
       },
       --[[
@@ -938,17 +924,15 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
+            local f = {}
             local _,reserved1 = pcall(buffer.get_i16, b)
-            local exchange = b:get_short_string()
-            local routing_key = b:get_short_string()
+            f.reserved1 = reserved1 or 0
+            f.exchange = b:get_short_string()
+            f.routing_key = b:get_short_string()
             local bits = b:get_i8()
-            return {
-              reserved1 = reserved1 or 0,
-              exchange = exchange,
-              routing_key = routing_key,
-              mandatory = band(bits,1),
-              immediate = band(bits,2)
-            }
+            f.mandatory = band(bits,1)
+            f.immediate = band(bits,2)
+            return f
           end
       },
       --[[
@@ -968,12 +952,12 @@ local methods_ = {
             return b:payload()
          end,
          r = function(b)
-            return {
-              reply_code = b:get_i16(),
-              reply_text = b:get_short_string(),
-              exchange = b:get_short_string(),
-              routing_key = b:get_short_string()
-            }
+            local f = {}
+            f.reply_code = b:get_i16()
+            f.reply_text = b:get_short_string()
+            f.exchange = b:get_short_string()
+            f.routing_key = b:get_short_string()
+            return f
          end
       },
       --[[
@@ -1129,13 +1113,12 @@ local function method_frame(ctx,channel,size)
    end
 
    local b = buffer.new(data)
-   -- debug
-   logger.dbg("[method_frame]",b:hex_dump())
+   debug("[method_frame]",b:hex_dump())
    local class_id = b:get_i16()
    local method_id = b:get_i16()
    frame.class_id = class_id
    frame.method_id = method_id
-   logger.dbg("[method_frame] class_id:",class_id, "method_id:", method_id)
+   debug("[method_frame] class_id:",class_id, "method_id:", method_id)
    local codec = methods_[class_id][method_id]
    if not codec then
       local err = "[method_frame]: no codec for class: " .. class_id .. " method: " .. method_id
@@ -1146,7 +1129,7 @@ local function method_frame(ctx,channel,size)
       local err = "[method_frame]: no decoder for class: " .. class_id .. " method: " .. method_id
       return nil, err
    end
-   logger.dbg("[method_frame] class:",methods_[class_id].name, "method:", codec.name)
+   debug("[method_frame] class:",methods_[class_id].name, "method:", codec.name)
    frame.method = codec.r(b)
    return frame
 end
@@ -1164,8 +1147,8 @@ local function header_frame(ctx,channel,size)
    end
 
    local b = buffer.new(data)
-   logger.dbg("[header_frame]",b:hex_dump())
-   
+   debug("[header_frame]",b:hex_dump())
+
    f.class_id = b:get_i16()
    f.weight = b:get_i16()
    f.body_size = b:get_i64()
@@ -1194,27 +1177,27 @@ local function header_frame(ctx,channel,size)
    if band(flag,c.flag.CORRELATION_ID) ~= 0 then
       f.properties.correlation_id = b:get_short_string()
    end
-   
+
    if band(flag,c.flag.REPLY_TO) ~= 0 then
       f.properties.reply_to = b:get_short_string()
    end
-   
+
    if band(flag,c.flag.EXPIRATION) ~= 0 then
       f.properties.expiration = b:get_short_string()
    end
-   
+
    if band(flag,c.flag.MESSAGE_ID) ~= 0 then
       f.properties.message_id = b:get_short_string()
    end
-   
+
    if band(flag,c.flag.TIMESTAMP) ~= 0 then
       f.properties.timestamp = b:get_timestamp()
    end
-   
+
    if band(flag,c.flag.TYPE) ~= 0 then
       f.properties.type, pos = b:get_short_string()
    end
-   
+
    if band(flag,c.flag.USER_ID) ~= 0 then
       f.properties.user_id = b:get_short_string()
    end
@@ -1222,11 +1205,11 @@ local function header_frame(ctx,channel,size)
    if band(flag,c.flag.APP_ID) ~= 0 then
       f.properties.app_id = b:get_short_string()
    end
-   
+
    if band(flag,c.flag.RESERVED1) ~= 0 then
       f.properties.resvered1 = b:get_short_string()
    end
-   
+
    return f
 end
 
@@ -1239,7 +1222,7 @@ local function body_frame(ctx,channel,size)
    end
    local b = buffer.new(data)
 
-   logger.dbg("[body_frame]",b:hex_dump())
+   debug("[body_frame]",b:hex_dump())
    frame.body = b:payload()
    return frame
 end
@@ -1267,9 +1250,9 @@ function _M.consume_frame(ctx)
    end
 
    local ok,fe,err
-   
+
    local b = buffer.new(data)
-   logger.dbg("[frame] 1st 7octets: ",b:hex_dump())
+   debug("[frame] 1st 7octets: ",b:hex_dump())
    local typ = b:get_i8()
    local channel = b:get_i16()
    local size = b:get_i32()
@@ -1309,7 +1292,7 @@ function _M.consume_frame(ctx)
    if not fe then
       return nil, err
    end
-   
+
    fe.type = typ
    return fe, nil
 end
@@ -1318,9 +1301,7 @@ end
 -- encoder
 --
 local function encode_frame(typ,channel,payload)
-
    payload = payload or ""
-   
    local size = #payload
    local b = buffer.new()
    b:put_i8(typ)
@@ -1421,27 +1402,27 @@ local function encode_header_frame(frame)
    if band(flags,c.flag.CORRELATION_ID) ~= 0 then
       b:put_short_string(frame.properties.correlation_id)
    end
-   
+
    if band(flags,c.flag.REPLY_TO) ~= 0 then
       b:put_short_string(frame.properties.reply_to)
    end
-   
+
    if band(flags,c.flag.EXPIRATION) ~= 0 then
       b:put_short_string(frame.properties.expiration)
    end
-   
+
    if band(flags,c.flag.MESSAGE_ID) ~= 0 then
       b:put_short_string(frame.properties.message_id)
    end
-   
+
    if band(flags,c.flag.TIMESTAMP) ~= 0 then
       b:put_time_stamp(frame.properties.timestamp)
    end
-   
+
    if band(flags,c.flag.TYPE) ~= 0 then
       b:put_short_string(frame.properties.type)
    end
-   
+
    if band(flags,c.flag.USER_ID) ~= 0 then
       b:put_short_string(frame.properties.user_id)
    end
@@ -1487,7 +1468,7 @@ function _M:encode()
       logger.error("[frame.encode] " .. err)
       return nil,err
    end
-   
+
    if typ == c.frame.METHOD_FRAME then
       return encode_method_frame(self)      
    elseif typ == c.frame.HEADER_FRAME then
@@ -1513,12 +1494,10 @@ function _M.wire_protocol_header(ctx)
    if not bytes then
       return nil, err
    end
-   
    return _M.consume_frame(ctx)
 end
 
 function _M.wire_heartbeat(ctx)
-   
    local frame = _M.new(c.frame.HEARTBEAT_FRAME,c.DEFAULT_CHANNEL)
 
    local msg = frame:encode()
@@ -1527,6 +1506,7 @@ function _M.wire_heartbeat(ctx)
    if not bytes then
       return nil,"[heartbeat]" .. err
    end
+
    return bytes
 end
 
@@ -1536,13 +1516,14 @@ function _M.wire_header_frame(ctx,body_size,properties)
    frame.weight = 0
    frame.size = body_size
    frame.properties = properties
-   
+
    local msg = frame:encode()
    local sock = ctx.sock
    local bytes, err = sock:send(msg)
    if not bytes then
       return nil,"[wire_header_frame]" .. err
    end
+
    return bytes
 end
 
@@ -1575,7 +1556,6 @@ local function ongoing(ctx,frame)
 end
 
 function _M.wire_method_frame(ctx,frame)
-   
    local msg = frame:encode()
    local sock = ctx.sock
    local bytes,err = sock:send(msg)
@@ -1583,15 +1563,15 @@ function _M.wire_method_frame(ctx,frame)
       return nil,"[wire_method_frame]" .. err
    end
 
-   logger.dbg("[wire_method_frame] wired a frame.", "[class_id]: ", frame.class_id, "[method_id]: ", frame.method_id)
+   debug("[wire_method_frame] wired a frame.", "[class_id]: ", frame.class_id, "[method_id]: ", frame.method_id)
    if frame.method ~= nil and not frame.method.no_wait then
       local f, err = _M.consume_frame(ctx)
       if f then
-         logger.dbg("[wire_method_frame] channel: ",f.channel)
+         debug("[wire_method_frame] channel: ",f.channel)
          if f.method then
-            logger.dbg("[wire_method_frame] method: ",f.method)
+            debug("[wire_method_frame] method: ",f.method)
          end
-         
+
          if is_channel_close_received(f) then
             ctx.channel_state = c.state.CLOSE_WAIT
             ongoing(ctx,frame)
@@ -1608,7 +1588,6 @@ function _M.wire_method_frame(ctx,frame)
       return f, err
    end
    return true
-   
 end
 
 return _M
