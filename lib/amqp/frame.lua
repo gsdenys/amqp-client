@@ -188,7 +188,7 @@ local methods_ = {
             f.minor = b:get_i8()
             f.props = b:get_field_table()
             f.mechanism = b:get_long_string()
-            f.ocales = b:get_long_string()
+            f.locales = b:get_long_string()
             return f
          end
       },
