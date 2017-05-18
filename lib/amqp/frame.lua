@@ -318,7 +318,7 @@ local methods_ = {
       [c.method.connection.BLOCKED] = {
          name = "blocked",
          r = function(b)
-            return {reason = b:read_get_short_string()}
+            return {reason = b:get_short_string()}
          end,
          w = function(method)
             local b = buffer.new()
@@ -376,7 +376,7 @@ local methods_ = {
       [c.method.channel.FLOW_OK] = {
          name = "flow_ok",
          r = function(b)
-            local bits = b:read_get_i8()
+            local bits = b:get_i8()
             return { active = band(bits,1) }
          end,
          w = function(method)
