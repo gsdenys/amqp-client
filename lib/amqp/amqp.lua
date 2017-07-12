@@ -36,21 +36,16 @@ local mt = { __index = amqp }
 -- to check whether we have valid parameters to setup
 local function mandatory_options(opts)
    if not opts then
-      error("no opts provided.")
+      error("no opts provided")
    end
 
    if type(opts) ~= "table" then
-      error("opts is not valid.")
+      error("opts is not valid")
    end
 
    if (opts.role == nil or opts.role == "consumer") and not opts.queue then
-      error("as a consumer, queue is required.")
-   end
-
-   --if not opts.exchange then
-   --   error("no exchange configured.")
-   --end
-   
+      error("as a consumer, queue is required")
+   end   
 end
 
 --
@@ -104,7 +99,7 @@ local function sslhandshake(ctx)
    if not ok then
       logger.error("[amqp.connect] SSL handshake failed: ", msg)
    else
-      logger.dbg("[amqp.connect] SSL handshake.")    
+      logger.dbg("[amqp.connect] SSL handshake")    
    end
    return ok, msg
 end
@@ -200,7 +195,7 @@ local function connection_tune_ok(ctx)
    if not bytes then
       return nil,"[connection_tune_ok]" .. err
    end
-   logger.dbg("[connection_tune_ok] wired a frame.", "[class_id]: ", f.class_id, "[method_id]: ", f.method_id)
+   logger.dbg("[connection_tune_ok] wired a frame", "[class_id]: ", f.class_id, "[method_id]: ", f.method_id)
    return true
 end
 
@@ -260,17 +255,18 @@ local function channel_open(ctx)
       return nil,"[channel_open]" .. err
    end
 
-   logger.dbg("[channel_open] wired a frame.", "[class_id]: ", f.class_id, "[method_id]: ", f.method_id)
+   logger.dbg("[channel_open] wired a frame", "[class_id]: ", f.class_id, "[method_id]: ", f.method_id)
    local res = frame.consume_frame(ctx)
    if res then
       logger.dbg("[channel_open] channel: ",res.channel)
+      ctx.channel = res.channel
    end
    return res
 end
 
 local function channel_close(ctx, reason)
    
-   local f = frame.new_method_frame(c.DEFAULT_CHANNEL,
+   local f = frame.new_method_frame(ctx.channel or c.DEFAULT_CHANNEL,
                                      c.class.CHANNEL,
                                      c.method.channel.CLOSE)
 
@@ -293,7 +289,7 @@ end
 local function is_mechanism_acceptable(ctx,method)
    local mechanism = method.mechanism
    if not mechanism then
-      return nil, "broker does not support any mechanism."
+      return nil, "broker does not support any mechanism"
    end
 
    for me in gmatch(mechanism, "%S+") do
@@ -308,11 +304,11 @@ end
 local function verify_capablities(ctx,method)
 
    if not is_version_acceptable(ctx,method.major,method.minor) then
-      return nil, "protocol version does not match."
+      return nil, "protocol version does not match"
    end
 
    if not is_mechanism_acceptable(ctx,method) then
-      return nil, "mechanism does not match."
+      return nil, "mechanism does not match"
    end
    return true
 end
@@ -351,7 +347,7 @@ function amqp:setup()
 
    local res, err = frame.wire_protocol_header(self)
    if not res then
-      logger.error("[amqp.setup] wire_protocol_header failed: " .. err)
+      logger.error("[amqp.setup] wire_protocol_header failed: ", err)
       return nil, err
    end
 
@@ -367,7 +363,7 @@ function amqp:setup()
 
    local res, err = connection_start_ok(self)
    if not res then
-      logger.error("[amqp.setup] connection_start_ok failed: " .. err)
+      logger.error("[amqp.setup] connection_start_ok failed: ", err)
       return nil, err
    end
 
@@ -375,13 +371,13 @@ function amqp:setup()
 
    local res, err = connection_tune_ok(self)
    if not res then
-      logger.error("[amqp.setup] connection_tune_ok failed: " .. err)
+      logger.error("[amqp.setup] connection_tune_ok failed: ", err)
       return nil, err
    end
    
    local res, err = connection_open(self)
    if not res then
-      logger.error("[amqp.setup] connection_open failed: " .. err)
+      logger.error("[amqp.setup] connection_open failed: ", err)
       return nil, err
    end
    
@@ -389,7 +385,7 @@ function amqp:setup()
    
    local res, err = channel_open(self)
    if not res then
-      logger.error("[amqp.setup] channel_open failed: " .. err)
+      logger.error("[amqp.setup] channel_open failed: ", err)
       return nil, err
    end
    self.channel_state = c.state.ESTABLISHED
@@ -434,7 +430,7 @@ end
 local function prepare_to_consume(ctx)
 
    if ctx.channel_state ~= c.state.ESTABLISHED then
-      return nil, "[prepare_to_consume] channel is not open."
+      return nil, "[prepare_to_consume] channel is not open"
    end
 
    local res, err = amqp.queue_declare(ctx)
@@ -534,14 +530,14 @@ function amqp:consume()
          if err0 == "closed" then
             err = err0
             set_state(self, c.state.CLOSED, c.state.CLOSED)
-            logger.error("[amqp.consume] socket closed.")
+            logger.error("[amqp.consume] socket closed")
             break
          end
 
          if err0 == "wantread" then
             err = err0
             set_state(self, c.state.CLOSED, c.state.CLOSED)
-            logger.error("[amqp.consume] SSL socket needs to dohandshake again.")
+            logger.error("[amqp.consume] SSL socket needs to dohandshake again")
             break
          end
          
@@ -649,10 +645,7 @@ function amqp:publish(payload, opts, properties)
 end
 
 local function default(v, def)
-  if v ~= nil then
-    return v
-  end
-  return def
+  return v ~= nil and v or def
 end
 
 --
@@ -663,7 +656,7 @@ function amqp:queue_declare(opts)
    opts = opts or {}
 
    if not opts.queue and not self.opts.queue then
-      return nil, "[queue_declare] queue is not specified."
+      return nil, "[queue_declare] queue is not specified"
    end
    
    local f = frame.new_method_frame(self.channel or 1,
@@ -676,7 +669,7 @@ function amqp:queue_declare(opts)
       durable = default(opts.durable, false),
       exclusive = default(opts.exclusive, false),
       auto_delete = default(opts.auto_delete, true),
-      no_wait = default(opts.no_wait, true)
+      no_wait = default(opts.no_wait, false)
    }
    return frame.wire_method_frame(self,f)
 end
@@ -686,7 +679,7 @@ function amqp:queue_bind(opts)
    opts = opts or {}
 
    if not opts.queue and not self.opts.queue then
-      return nil, "[queue_bind] queue is not specified."
+      return nil, "[queue_bind] queue is not specified"
    end
    
    local f = frame.new_method_frame(self.channel or 1,
@@ -708,7 +701,7 @@ function amqp:queue_unbind(opts)
    opts = opts or {}
 
    if not opts.queue and not self.opts.queue then
-      return nil, "[queue_unbind] queue is not specified."
+      return nil, "[queue_unbind] queue is not specified"
    end
    
    local f = frame.new_method_frame(self.channel or 1,
@@ -730,7 +723,7 @@ function amqp:queue_delete(opts)
    opts = opts or {}
 
    if not opts.queue and not self.opts.queue then
-      return nil, "[queue_delete] queue is not specified."
+      return nil, "[queue_delete] queue is not specified"
    end
 
    local f = frame.new_method_frame(self.channel or 1,
@@ -776,15 +769,15 @@ end
 function amqp:exchange_bind(opts)
 
    if not opts then
-      return nil, "[exchange_bind] opts is required."
+      return nil, "[exchange_bind] opts is required"
    end
 
    if not opts.source then
-      return nil, "[exchange_bind] source is required."
+      return nil, "[exchange_bind] source is required"
    end
 
    if not opts.destination then
-      return nil, "[exchange_bind] destination is required."
+      return nil, "[exchange_bind] destination is required"
    end
 
    local f = frame.new_method_frame(self.channel or 1,
@@ -804,15 +797,15 @@ end
 function amqp:exchange_unbind(opts)
 
    if not opts then
-      return nil, "[exchange_unbind] opts is required."
+      return nil, "[exchange_unbind] opts is required"
    end
 
    if not opts.source then
-      return nil, "[exchange_unbind] source is required."
+      return nil, "[exchange_unbind] source is required"
    end
 
    if not opts.destination then
-      return nil, "[exchange_unbind] destination is required."
+      return nil, "[exchange_unbind] destination is required"
    end
 
    local f = frame.new_method_frame(self.channel or 1,
@@ -854,7 +847,7 @@ function amqp:basic_consume(opts)
    opts = opts or {}
 
    if not opts.queue and not self.opts.queue then
-      return nil, "[basic_consume] queue is not specified."
+      return nil, "[basic_consume] queue is not specified"
    end
 
    local f = frame.new_method_frame(self.channel or 1,
