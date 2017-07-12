@@ -244,7 +244,6 @@ local function connection_close_ok(ctx)
 end
 
 local function channel_open(ctx)
-   
    local f = frame.new_method_frame(ctx.opts.channel or 1,
                                      c.class.CHANNEL,
                                      c.method.channel.OPEN)
@@ -265,7 +264,6 @@ local function channel_open(ctx)
 end
 
 local function channel_close(ctx, reason)
-   
    local f = frame.new_method_frame(ctx.channel or c.DEFAULT_CHANNEL,
                                      c.class.CHANNEL,
                                      c.method.channel.CLOSE)
@@ -302,7 +300,6 @@ local function is_mechanism_acceptable(ctx,method)
 end
 
 local function verify_capablities(ctx,method)
-
    if not is_version_acceptable(ctx,method.major,method.minor) then
       return nil, "protocol version does not match"
    end
@@ -327,7 +324,6 @@ local function negotiate_connection_tune_params(ctx,method)
    if method.frame_max ~= nil and method.frame_max ~= 0 then
       ctx.frame_max = min(ctx.frame_max, method.frame_max)
    end
-   
 end
 
 local function set_state(ctx, channel_state, connection_state)
@@ -428,7 +424,6 @@ end
 -- initialize the consumer
 --
 local function prepare_to_consume(ctx)
-
    if ctx.channel_state ~= c.state.ESTABLISHED then
       return nil, "[prepare_to_consume] channel is not open"
    end
@@ -476,11 +471,7 @@ function amqp:timedout(timeouts)
 end
 
 local function error_string(err)
-   
-   if err then
-      return err
-   end
-   return "?"
+   return err or "?"
 end
 
 local function exiting()
@@ -490,30 +481,36 @@ end
 --
 -- consumer
 --
-function amqp:consume()
 
-   local ok, err = self:setup()
-   if not ok then
-      self:teardown()
-      return nil, err
-   end
+local function ack(ctx, ok, delivery_tag)
+   local f = frame.new_method_frame(ctx.channel or 1,
+                                    c.class.BASIC,
+                                    ok and c.method.basic.ACK or c.method.basic.NACK)
 
-   local ok, err = prepare_to_consume(self)
-   if not ok then
-      self:teardown()
-      return nil, err
-   end
+   f.method = {
+      delivery_tag = delivery_tag,
+      multiple = false,
+      no_wait = true
+   }
+
+   return frame.wire_method_frame(ctx,f)
+end
+
+function amqp:consume_loop(callback)
+   local err
 
    local hb = {
       last = os.time(),
       timeouts = 0
    }
+
+   local f_deliver, f_header
    
    while true do
 --
       ::continue::
 --
-         
+
       local f, err0 = frame.consume_frame(self)
       if not f then
 
@@ -549,7 +546,7 @@ function amqp:consume()
             hb.last = now
             local ok, err0 = frame.wire_heartbeat(self)
             if not ok then
-               logger.error("[heartbeat]","pong error: " .. error_string(err0) .. "[ts]: ", hb.last)
+               logger.error("[heartbeat]","pong error: ", error_string(err0), "[ts]: ", hb.last)
             else
                logger.dbg("[heartbeat]","pong sent. [ts]: ",hb.last)
             end
@@ -557,16 +554,15 @@ function amqp:consume()
 
          if timedout(self,hb.timeouts) then
             err = "heartbeat timeout"
-            logger.error("[amqp.consume] timedout. [ts]: " .. now)
+            logger.error("[amqp.consume] timedout. [ts]: ", now)
             break
          end
 
-         logger.dbg("[amqp.consume] continue consuming " .. err0)
+         logger.dbg("[amqp.consume] continue consuming ", err0)
          goto continue
       end
       
       if f.type == c.frame.METHOD_FRAME then
-
          if f.class_id == c.class.CHANNEL then
             if f.method_id == c.method.channel.CLOSE then
                set_state(self, c.state.CLOSE_WAIT, self.connection_state)
@@ -581,39 +577,67 @@ function amqp:consume()
             end
          elseif f.class_id == c.class.BASIC then
             if f.method_id == c.method.basic.DELIVER then
+               f_deliver = f.method
                if f.method ~= nil then
                   logger.dbg("[basic_deliver] ", f.method)
                end
             end
          end
       elseif f.type == c.frame.HEADER_FRAME then
+         f_header = f
          logger.dbg(format("[header] class_id: %d weight: %d, body_size: %d",
                             f.class_id, f.weight, f.body_size))
          logger.dbg("[frame.properties]",f.properties)
       elseif f.type == c.frame.BODY_FRAME then
-         
-         if self.opts.callback then
-            local status, err0 = pcall(self.opts.callback,f.body)
+         local status = true
+         if callback then
+            status, err0 = pcall(callback, {
+              body = f.body,
+              frame = f_deliver,
+              properties = f_header.properties
+            })
             if not status then
-               logger.error("calling callback failed: " .. err0)
+               logger.error("calling callback failed: ", err0)
             end
          end
-         logger.dbg("[body]",f.body)
+         if not self.opts.no_ack then
+           -- ack
+           ack(self, status, f_deliver.delivery_tag)
+         end
+         f_deliver, f_header = nil, nil
+         logger.dbg("[body]", f.body)
       elseif f.type == c.frame.HEARTBEAT_FRAME then
          hb.last = os.time()
-         logger.info("[heartbeat]","ping received. [ts]: ",hb.last)
+         logger.info("[heartbeat]","ping received. [ts]: ", hb.last)
          hb.timeouts = band(lshift(hb.timeouts,1),0)
          local ok, err0 = frame.wire_heartbeat(self)
          if not ok then
-            logger.error("[heartbeat]","pong error: " .. error_string(err0) .. "[ts]: ", hb.last)
+            logger.error("[heartbeat]","pong error: ", error_string(err0), "[ts]: ", hb.last)
          else
-            logger.dbg("[heartbeat]","pong sent. [ts]: ",hb.last)
+            logger.dbg("[heartbeat]","pong sent. [ts]: ", hb.last)
          end
       end
    end
 
    self:teardown()
-   return nil,err
+
+   return not err or err ~= "exiting", err
+end
+
+function amqp:consume()
+   local ok, err = self:setup()
+   if not ok then
+      self:teardown()
+      return nil, err
+   end
+
+   local ok, err = prepare_to_consume(self)
+   if not ok then
+      self:teardown()
+      return nil, err
+   end
+
+   return self:consume_loop(self.opts.callback)
 end
 
 --
@@ -645,7 +669,10 @@ function amqp:publish(payload, opts, properties)
 end
 
 local function default(v, def)
-  return v ~= nil and v or def
+  if v ~= nil then
+     return v
+  end
+  return def
 end
 
 --
@@ -864,7 +891,6 @@ function amqp:basic_consume(opts)
 
    return frame.wire_method_frame(self,f)
 end
-
 
 function amqp:basic_publish(opts)
 

@@ -765,7 +765,7 @@ local methods_ = {
          w = function(method)
             local b = buffer.new()
             b:put_short_string(method.consumer_tag)
-            b:put_short_string(method.delivery_tag)
+            b:put_i64(method.delivery_tag)
             b:put_bool(method.redelivered)
             b:put_short_string(method.exchange)
             b:put_short_string(method.routing_key)
@@ -981,13 +981,13 @@ local methods_ = {
          name = "ack",
          r = function(b)
             local method = {}
-            method.delivery_tag = b:get_short_string()
+            method.delivery_tag = b:get_i64()
             method.multiple = b:get_bool()
             return method
          end,
          w = function(method)
             local b = buffer.new()
-            b:put_short_string(method.delivery_tag)
+            b:put_i64(method.delivery_tag)
             b:put_bool(method.multiple)
             return b:payload()
          end
