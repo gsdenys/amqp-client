@@ -746,7 +746,7 @@ local methods_ = {
       },
       --[[
          consumer_tag short_string
-         delivery_tag short_string
+         delivery_tag i64
          redelivered bool
          exchange short_string
          routing_key short_string
@@ -849,7 +849,7 @@ local methods_ = {
          end
       },
       --[[
-         delivery_tag short_string
+         delivery_tag i64
          redelivered bool
          exchange short_string
          routing_key short_string
@@ -859,7 +859,7 @@ local methods_ = {
          name = "get_ok",
          r = function(b)
             local f = {}
-            f.delivery_tag = b:get_short_string()
+            f.delivery_tag = b:get_i64()
             f.redelivered = b:get_bool()
             f.exchange = b:get_short_string()
             f.routing_key = b:get_short_string()
@@ -974,7 +974,7 @@ local methods_ = {
          end
       },
       --[[
-         delivery_tag short_string
+         delivery_tag i64
          multiple bit
       --]]
       [c.method.basic.ACK] = {
@@ -993,7 +993,7 @@ local methods_ = {
          end
       },
       --[[
-         delivery_tag short_string
+         delivery_tag i64
          multiple bit
          requeue bit
       --]]
@@ -1001,7 +1001,7 @@ local methods_ = {
          name = "nack",
          r = function(b)
             local f = {}
-            f.delivery_tag = b:get_short_string()
+            f.delivery_tag = b:get_i64()
             local v = b:get_i8()
             f.multiple = (band(v,0x1) ~= 0)
             f.requeue = (band(v,0x2) ~= 0)
@@ -1009,7 +1009,7 @@ local methods_ = {
          end,
          w = function(method)
             local b = buffer.new()
-            b:put_short_string(method.delivery_tag)
+            b:put_i64(method.delivery_tag)
             local bits = 0
             if method.multiple and method.multiple ~= 0 then
                bits = bor(bits, 1)
@@ -1022,20 +1022,20 @@ local methods_ = {
          end
       },
       --[[
-         delivery_tag short_string
+         delivery_tag i64
          requeue bit
       --]]
       [c.method.basic.REJECT] = {
          name = "reject",
          r = function(b)
             local f = {}
-            f.delivery_tag = b:get_short_string()
+            f.delivery_tag = b:get_i64()
             f.requeue = b:get_bool()
             return f
          end,
          w = function(method)
             local b = buffer.new()
-            b:put_short_string(method.delivery_tag)
+            b:put_i64(method.delivery_tag)
             b:put_bool(method.requeue)
             return b:payload()
          end
