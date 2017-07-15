@@ -1,7 +1,7 @@
 --
 -- Copyright (C) 2016 Meng Zhang @ Yottaa,Inc
 --
--- 
+--
 -- [0].https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf
 -- [1].https://www.rabbitmq.com/amqp-0-9-1-reference.html
 --

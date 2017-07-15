@@ -23,13 +23,13 @@ local amqp = {
       ESTABLISHED   = 1,
       CLOSE_WAIT    = 2,
    },
-      
+
    frame = {
       METHOD_FRAME    = 1,
       HEADER_FRAME    = 2,
       BODY_FRAME      = 3,
       HEARTBEAT_FRAME = 8,
-      
+
       FRAME_MIN_SIZE  = 4096,
       FRAME_END       = 0xCE
    },
@@ -112,7 +112,7 @@ local amqp = {
          SELECT_OK  = 0x0B
       }
    },
-   
+
    class = {
       CONNECTION  = 0x000A,
       CHANNEL     = 0x0014,
@@ -162,14 +162,11 @@ local amqp = {
       INTERNAL_ERROR      = 541
    },
 
-
-
    PRODUCT = "amqp-lua",
    VERSION  = "1.0",
    COPYRIGHT = "Copyright (c) 2016 Meng Zhang @Yottaa,Inc",
    LOCALE = "en_US",
    MECHANISM_PLAIN = "PLAIN"
-   
 }
 
 return amqp

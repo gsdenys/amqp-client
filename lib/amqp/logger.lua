@@ -67,14 +67,17 @@ function logger.set_level(level)
 end
 
 function logger.error(...)
-   log(ERR,va_table_to_string({...}))
+   if level_ < ERR then
+      return
+   end
+   log(ERR, va_table_to_string({...}))
 end
 
 function logger.info(...)
    if level_ < INFO then
       return
    end
-   log(INFO,va_table_to_string({...}))
+   log(INFO, va_table_to_string({...}))
 end
 
 function logger.dbg(...)
@@ -82,7 +85,7 @@ function logger.dbg(...)
       return
    end
 
-   log(DEBUG,va_table_to_string({...}))
+   log(DEBUG, va_table_to_string({...}))
 end
 
 function logger.is_debug_enabled()
