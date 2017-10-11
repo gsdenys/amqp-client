@@ -35,7 +35,7 @@ local amqp = {
    },
 
    method = {
-      connection = { 
+      connection = {
          START     = 0x0A,
          START_OK  = 0x0B,
          SECURE    = 0x14,

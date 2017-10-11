@@ -17,7 +17,6 @@ local band = bit.band
 local bor = bit.bor
 
 local byte = string.byte
-local format = string.format
 
 local debug = logger.dbg
 local is_debug_enabled = logger.is_debug_enabled
@@ -330,10 +329,10 @@ local methods_ = {
       --]]
       [c.method.connection.UNBLOCKED] = {
          name = "unblocked",
-         r = function(b)
+         r = function(--[[b--]])
             return nil
          end,
-         w = function(method)
+         w = function(--[[method--]])
             return nil
          end
       }
@@ -342,11 +341,11 @@ local methods_ = {
       name = "channel",
       [c.method.channel.OPEN] = {
          name = "open",
-         w = function(method)
+         w = function(--[[method--]])
             -- reserved?
             return '\0'
          end,
-         r = function(method)
+         r = function(--[[method--]])
             return '\0'
          end
       },
@@ -418,7 +417,6 @@ local methods_ = {
       [c.method.exchange.DECLARE] = {
          name = "declare",
          w = function(method)
-            local bits = 0
             local b = buffer.new()
             b:put_i16(method.reserved1 or 0)
             b:put_short_string(method.exchange)
@@ -902,7 +900,7 @@ local methods_ = {
       },
       --[[
          reserved1 i16
-         exchange short_string 
+         exchange short_string
          routing_key short_string
          mandatory bit
          immediate bit
@@ -1200,7 +1198,7 @@ local function header_frame(ctx,channel,size)
    end
 
    if band(flag,c.flag.TYPE) ~= 0 then
-      f.properties.type, pos = b:get_short_string()
+      f.properties.type = b:get_short_string()
    end
 
    if band(flag,c.flag.USER_ID) ~= 0 then
@@ -1235,7 +1233,7 @@ local function body_frame(ctx,channel,size)
 end
 
 
-local function heartbeat_frame(ctx,channel,size)
+local function heartbeat_frame(--[[ctx--]]_,channel,size)
    local frame = { channel = channel}
    if size > 0 then
       return nil
@@ -1479,7 +1477,7 @@ function _M:encode()
    end
 
    if typ == c.frame.METHOD_FRAME then
-      return encode_method_frame(self)      
+      return encode_method_frame(self)
    elseif typ == c.frame.HEADER_FRAME then
       return encode_header_frame(self)
    elseif typ == c.frame.BODY_FRAME then
@@ -1555,7 +1553,7 @@ local function is_channel_close_received(frame)
 end
 
 local function is_connection_close_received(frame)
-   return frame ~= nil and frame.class_id == c.class.CONNECTION and frame.method_id == c.method.connection.CLOSE 
+   return frame ~= nil and frame.class_id == c.class.CONNECTION and frame.method_id == c.method.connection.CLOSE
 end
 
 local function ongoing(ctx,frame)

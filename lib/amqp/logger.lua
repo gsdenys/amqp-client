@@ -10,7 +10,7 @@ local logger = {}
 
 
 -- logging scaffold
-local log = nil
+local log
 if _G.ngx and _G.ngx.log then
    log = ngx.log
 else
@@ -56,7 +56,7 @@ end
 
 local function va_table_to_string(tbl)
    local res = ""
-   for k,v in pairs(tbl) do
+   for _,v in pairs(tbl) do
       res = res .. to_string(v) .. "\t"
    end
    return res
