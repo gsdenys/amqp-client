@@ -13,11 +13,9 @@ local band = bit.band
 local bor = bit.bor
 local lshift = bit.lshift
 local rshift = bit.rshift
-local tohex = bit.tohex
 
 local format = string.format
 local gmatch = string.gmatch
-local max = math.max
 local min = math.min
 
 local socket
@@ -353,7 +351,7 @@ function amqp:setup()
       return nil, err
    end
 
-   negotiate_connection_tune_params(self,res.method)   
+   negotiate_connection_tune_params(self,res.method)
 
    local res, err = connection_tune_ok(self)
    if not res then
