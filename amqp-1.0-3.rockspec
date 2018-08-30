@@ -1,7 +1,7 @@
 package = "amqp"
 version = "1.0-3"
 source = {
-   url = "https://github.com/4mig4/resty-amqp.git",
+   url = "https://github.com/4mig4/lua-amqp.git",
    tag = "",
 }
 description = {
@@ -9,7 +9,7 @@ description = {
    detailed = [[
       RabbitMQ / AMQP 0.9.1 client, pure Lua solution by Meng Zhang, Aleksey Konovkin, 4mig4.
    ]],
-   homepage = "https:////github.com/4mig4/amqp",
+   homepage = "https://github.com/4mig4/lua-amqp",
    license = "Apache 2.0"
 }
 dependencies = {
