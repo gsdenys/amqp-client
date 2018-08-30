@@ -8,9 +8,9 @@
 
 module("frame",package.seeall)
 
-local c = require "consts"
-local buffer = require "buffer"
-local logger = require "logger"
+local c = require "resty.amqp.consts"
+local buffer = require "resty.amqp.buffer"
+local logger = require "resty.amqp.logger"
 
 local bit = require "bit"
 local band = bit.band
@@ -1210,7 +1210,7 @@ local function header_frame(ctx,channel,size)
    end
 
    if band(flag,c.flag.RESERVED1) ~= 0 then
-      f.properties.resvered1 = b:get_short_string()
+      f.properties.reserved1 = b:get_short_string()
    end
 
    return f

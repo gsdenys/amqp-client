@@ -4,7 +4,7 @@
 
 module("buffer",package.seeall)
 
-local logger = require "logger"
+local logger = require "resty.amqp.logger"
 local bit = require "bit"
 local band = bit.band
 local bor = bit.bor
