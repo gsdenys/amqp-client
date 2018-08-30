@@ -69,7 +69,7 @@ function amqp:new(opts)
     return nil, err
   end
 
-  ctx = { sock = sock,
+  local ctx = { sock = sock,
           opts = opts,
           connection_state = c.state.CLOSED,
           channel_state = c.state.CLOSED,
@@ -83,7 +83,7 @@ function amqp:new(opts)
           mechanism = c.MECHANISM_PLAIN
          }
   setmetatable(ctx,mt)
-  return ctx 
+  return ctx
 end
 
 local function sslhandshake(ctx)
@@ -277,15 +277,15 @@ function amqp:channel_close(reason)
 end
 
 function amqp:channel_close_ok()
-  local f = frame.new_method_frame(self.channel or 1, c.class.CHANNEL, c.method.channel.CLOSE_OK) 
+  local f = frame.new_method_frame(self.channel or 1, c.class.CHANNEL, c.method.channel.CLOSE_OK)
   return frame.wire_method_frame(self, f)
 end
 
 --- check if protocol version matches
 -- @param self (context)
--- @param major major version of the protocol 
+-- @param major major version of the protocol
 -- @param minor minor version of the protocol
--- @return true or false 
+-- @return true or false
 
 local function is_version_acceptable(self, major, minor)
   return self.major == major and self.minor == minor
@@ -440,8 +440,8 @@ function amqp:prepare_to_consume()
     logger.error("[prepare_to_consume] queue_declare failed: ", err)
     return nil, err
   end
-  
-  if self.opts.exchange ~= '' then 
+
+  if self.opts.exchange ~= '' then
    local res, err = amqp.queue_bind(self)
    if not res then
     logger.error("[prepare_to_consume] queue_bind failed: ", err)
