@@ -466,13 +466,13 @@ end
 local function timedout(ctx, timeouts)
   local window = ctx.window or 5
   local threshold = ctx.threshold or 4
-  local c = 0
+  local counter = 0
   for i = 1, window do
     if band(rshift(timeouts,i-1),1) ~= 0 then
-      c = c + 1
+      counter = counter + 1
     end
   end
-  return c >= threshold
+  return counter >= threshold
 end
 
 function amqp:timedout(timeouts)
@@ -488,7 +488,7 @@ end
 --
 
 function amqp:basic_ack(ok, delivery_tag)
-  local f = frame.new_method_frame(ctx.channel or 1,
+  local f = frame.new_method_frame(self.channel or 1,
                         c.class.BASIC,
                         ok and c.method.basic.ACK or c.method.basic.NACK)
 
