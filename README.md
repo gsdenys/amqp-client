@@ -34,23 +34,5 @@ luarocks install inspect
 
 ## Typical Use Cases
 
-The examples below are really really misleading, so please look at the example directory instead.
+Please look at the example directory instead.
 
-+ Consumer
-
-```lua
-local amqp = require "resty.amqp"
-local ctx = amqp.new({role = "consumer", queue = "mengz0", exchange = "amq.topic", ssl = false, user = "guest", password = "guest"})
-ctx:connect("127.0.0.1",5672)
-local ok, err = ctx:consume()
-```
-
-+ Producer
-
-```lua
-local amqp = require "resty.amqp"
-local ctx = amqp.new({role = "publisher", exchange = "amq.topic", ssl = false, user = "guest", password = "guest"})
-ctx:connect("127.0.0.1",5672)
-ctx:setup()
-local ok, err = ctx:publish("Hello world!")
-```
