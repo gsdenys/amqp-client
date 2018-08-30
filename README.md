@@ -18,7 +18,7 @@ This fork contains the code that is missing in the original library.
 * Decode all AMQP packets
 * Several other fixes
 * Examples on how to use this library.
-* Removed bitopers.lua as I do not need it and it was not working, if someone else wants to provide a better solution for compatibility with Lua 5.1 please do not hesitate to pull request.
+* Removed not working bitopers.lua, also not needed for my use case.
 
 ## Requirements
 
