@@ -24,15 +24,12 @@ This fork contains the code that is missing in the original library.
 1. LuaJIT 2.1
 2. busted 2.0 (Testing framework)
 
-### Examples Requirements
+### Examples
 
-* lua inspect is needed 
+Please look at the example directory instead.
+
+* lua inspect is needed by the example, though you are of course free not to use it and remove it.
 
 ```
 luarocks install inspect
 ```
-
-## Typical Use Cases
-
-Please look at the example directory instead.
-
