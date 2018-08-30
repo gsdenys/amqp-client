@@ -1,6 +1,11 @@
 # AMQP
 Lua Client for AMQP 0.9.1
 
+This library is fork of : 
+
+https://github.com/mengz0/amqp.
+https://github.com/ZigzagAK/amqp
+
 ## Additional features
 This fork contains the code that is missing in the original library.
 * Decode all AMQP packets
