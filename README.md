@@ -4,6 +4,7 @@ Lua Client for AMQP 0.9.1
 ## Additional features
 This fork contains the code that is missing in the original library.
 * Decode all AMQP packets
+* Several other fixes and examples on how to use this library.
 
 ## Requirements
 1. LuaJIT 2.1
