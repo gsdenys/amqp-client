@@ -22,6 +22,7 @@ local is_debug_enabled = logger.is_debug_enabled
 
 local frame = {}
 
+
 local function declare_exchange_flags(method)
    local bits = 0
 
@@ -1347,7 +1348,7 @@ local function flags_mask(frame)
       mask = bor(mask,c.flag.HEADERS)
    end
    if frame.properties.delivery_mode ~= nil then
-      mask = bor(mask,c.flag.DELIVERYframeODE)
+      mask = bor(mask,c.flag.DELIVERY_MODE)
    end
    if frame.properties.priority ~= nil then
       mask = bor(mask,c.flag.PRIORITY)
@@ -1397,7 +1398,7 @@ local function encode_header_frame(frame)
       b:put_field_table(frame.properties.headers)
    end
 
-   if band(flags,c.flag.DELIVERYframeODE) ~= 0 then
+   if band(flags,c.flag.DELIVERY_MODE) ~= 0 then
       b:put_i8(frame.properties.delivery_mode)
    end
 
