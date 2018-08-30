@@ -19,6 +19,8 @@ This fork contains the code that is missing in the original library.
 
 ## Typical Use Cases
 
+The examples below are really really misleading, so please look at the example directory instead.
+
 + Consumer
 
 ```lua
