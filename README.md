@@ -9,6 +9,8 @@ https://github.com/mengz0/amqp
 https://github.com/ZigzagAK/amqp
 
 This library at the moment supports ngx.socket and socket, but plans have been discussed to move to cqueues
+It can be used with luajit and does not have to be used only in OpenResty, in fact there are very few use cases 
+I can see for it in OpenResty.
 
 ## Additional features
 
