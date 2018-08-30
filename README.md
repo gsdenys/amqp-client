@@ -17,6 +17,8 @@ This fork contains the code that is missing in the original library.
 1. LuaJIT 2.1
 2. busted 2.0 (Testing framework)
 
+### Examples Requirements
+
 ## Typical Use Cases
 
 The examples below are really really misleading, so please look at the example directory instead.
