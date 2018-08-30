@@ -342,7 +342,8 @@ end
 -- @error TBD
 
 function amqp:setup()
-
+  local res
+  local err
   local sock = self.sock
   if not sock then
     return nil, "not initialized"
@@ -351,7 +352,7 @@ function amqp:setup()
   -- configurable but 30 seconds read timeout
   sock:settimeout(self.opts.read_timeout or 30000)
 
-  local res, err = frame.wire_protocol_header(self)
+  res, err = frame.wire_protocol_header(self)
   if not res then
     logger.error("[amqp:setup] wire_protocol_header failed: ", err)
     return nil, err
@@ -359,7 +360,7 @@ function amqp:setup()
 
   if res.method then
     logger.dbg("[amqp:setup] connection_start: ",res.method)
-    local res, err = amqp.verify_capabilities(self, res.method)
+    res, err = amqp.verify_capabilities(self, res.method)
     if not res then
       -- in order to close the socket without sending futher data
       set_state(self,c.state.CLOSED, c.state.CLOSED)
@@ -367,7 +368,7 @@ function amqp:setup()
     end
   end
 
-  local res, err = amqp.connection_start_ok(self)
+  res, err = amqp.connection_start_ok(self)
   if not res then
     logger.error("[amqp:setup] connection_start_ok failed: ", err)
     return nil, err
@@ -375,13 +376,13 @@ function amqp:setup()
 
   negotiate_connection_tune_params(self,res.method)
 
-  local res, err = amqp.connection_tune_ok(self)
+  res, err = amqp.connection_tune_ok(self)
   if not res then
     logger.error("[amqp:setup] connection_tune_ok failed: ", err)
     return nil, err
   end
 
-  local res, err = amqp.connection_open(self)
+  res, err = amqp.connection_open(self)
   if not res then
     logger.error("[amqp:setup] connection_open failed: ", err)
     return nil, err
@@ -389,7 +390,7 @@ function amqp:setup()
 
   self.connection_state = c.state.ESTABLISHED
 
-  local res, err = amqp.channel_open(self)
+  res, err = amqp.channel_open(self)
   if not res then
     logger.error("[amqp:setup] channel_open failed: ", err)
     return nil, err
@@ -402,25 +403,29 @@ end
 -- close channel and connection if needed.
 --
 function amqp:teardown(reason)
+
+  local ok
+  local err
+
   if self.channel_state == c.state.ESTABLISHED then
-    local ok, err = amqp.channel_close(self, reason)
+    ok, err = amqp.channel_close(self, reason)
     if not ok then
       logger.error("[channel_close] err: ", err)
     end
   elseif self.channel_state == c.state.CLOSE_WAIT then
-    local ok, err = amqp.channel_close_ok(self)
+    ok, err = amqp.channel_close_ok(self)
     if not ok then
       logger.error("[channel_close_ok] err: ", err)
     end
   end
 
   if self.connection_state == c.state.ESTABLISHED then
-    local ok, err = amqp.connection_close(self, reason)
+    ok, err = amqp.connection_close(self, reason)
     if not ok then
       logger.error("[connection_close] err: ", err)
     end
   elseif self.connection_state == c.state.CLOSE_WAIT then
-    local ok, err = amqp:connection_close_ok()
+    ok, err = amqp:connection_close_ok()
     if not ok then
       logger.error("[connection_close_ok] err: ", err)
     end
@@ -431,25 +436,29 @@ end
 -- initialize the consumer
 --
 function amqp:prepare_to_consume()
+
+  local res
+  local err
+
   if self.channel_state ~= c.state.ESTABLISHED then
     return nil, "[prepare_to_consume] channel is not open"
   end
 
-  local res, err = amqp.queue_declare(self)
+  res, err = amqp.queue_declare(self)
   if not res then
     logger.error("[prepare_to_consume] queue_declare failed: ", err)
     return nil, err
   end
 
   if self.opts.exchange ~= '' then
-   local res, err = amqp.queue_bind(self)
+   res, err = amqp.queue_bind(self)
    if not res then
     logger.error("[prepare_to_consume] queue_bind failed: ", err)
     return nil, err
    end
   end
 
-  local res, err = amqp.basic_consume(self)
+  res, err = amqp.basic_consume(self)
   if not res then
    logger.error("[prepare_to_consume] basic_consume failed: ", err)
    return nil, err
@@ -502,20 +511,21 @@ function amqp:basic_ack(ok, delivery_tag)
 end
 
 function amqp:consume_loop(callback)
+
+  local ok
   local err
-
-  local hb = {
-    last = os.time(),
-    timeouts = 0
-  }
-
-  local f_deliver, f_header
+  local err0
+  local f
+  local hb = { last = os.time(), timeouts = 0 }
+  local f_deliver
+  local f_header
+  local status
 
   while true do
 --
     ::continue::
 --
-    local f, err0 = frame.consume_frame(self)
+    f, err0 = frame.consume_frame(self)
     if not f then -- if start
       if exiting() then
         err = "exiting"
@@ -547,7 +557,7 @@ function amqp:consume_loop(callback)
         logger.dbg("[amqp:consume_loop] timeouts inc. [ts]: ",now)
         hb.timeouts = bor(lshift(hb.timeouts,1),1)
         hb.last = now
-        local ok, err0 = frame.wire_heartbeat(self)
+        ok, err0 = frame.wire_heartbeat(self)
         if not ok then
           logger.error("[heartbeat]","pong error: ", err0 or "?", "[ts]: ", hb.last)
         else
@@ -592,7 +602,7 @@ function amqp:consume_loop(callback)
                   f.class_id, f.weight, f.body_size))
       logger.dbg("[frame.properties]",f.properties)
     elseif f.type == c.frame.BODY_FRAME then
-      local status = true
+      status = true
       if callback then
         status, err0 = pcall(callback, {
           body = f.body,
@@ -613,7 +623,7 @@ function amqp:consume_loop(callback)
       hb.last = os.time()
       logger.dbg("[heartbeat]","ping received. [ts]: ", hb.last)
       hb.timeouts = band(lshift(hb.timeouts,1),0)
-      local ok, err0 = frame.wire_heartbeat(self)
+      ok, err0 = frame.wire_heartbeat(self)
       if not ok then
         logger.error("[heartbeat]","pong error: ", err0 or "?", "[ts]: ", hb.last)
       else
@@ -629,13 +639,16 @@ end
 
 function amqp:consume()
 
-  local ok, err = self:setup()
+  local ok
+  local err
+
+  ok, err = self:setup()
   if not ok then
    self:teardown()
    return nil, err
   end
 
-  local ok, err = self:prepare_to_consume()
+  ok, err = self:prepare_to_consume()
   if not ok then
    self:teardown()
    return nil, err
@@ -649,20 +662,24 @@ end
 --
 
 function amqp:publish(payload, opts, properties)
+
+  local ok
+  local err
   local size = #payload
-  local ok, err = amqp.basic_publish(self, opts)
+
+  ok, err = amqp.basic_publish(self, opts)
   if not ok then
     logger.error("[amqp.publish] failed: ", err)
     return nil, err
   end
 
-  local ok, err = frame.wire_header_frame(self, size, properties)
+  ok, err = frame.wire_header_frame(self, size, properties)
   if not ok then
     logger.error("[amqp.publish] failed: ", err)
     return nil, err
   end
 
-  local ok, err = frame.wire_body_frame(self, payload)
+  ok, err = frame.wire_body_frame(self, payload)
   if not ok then
     logger.error("[amqp.publish] failed: ", err)
     return nil, err
@@ -675,6 +692,7 @@ end
 -- queue
 --
 function amqp:queue_declare(opts)
+
   opts = opts or {}
 
   if not opts.queue and not self.opts.queue then
