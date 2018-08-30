@@ -27,7 +27,7 @@
 ---------------------------------------------------------------------------------
 -- Requires
 
-local amqp = require('resty.amqp')
+local amqp = require('amqp')
 local uuid = require('resty.uuid')
 local inspect = require('inspect')
 
