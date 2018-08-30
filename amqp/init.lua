@@ -3,9 +3,10 @@
 -- Copyright (C) 2018 4mig4
 --
 
-local c = require ('resty.amqp.consts')
-local frame = require ('resty.amqp.frame')
-local logger = require ('resty.amqp.logger')
+local c = require ('amqp.consts')
+local frame = require ('amqp.frame')
+local logger = require ('amqp.logger')
+local bit = require('bit')
 
 local band = bit.band
 local bor = bit.bor

@@ -1,9 +1,10 @@
 --
 -- Copyright (C) 2016 Meng Zhang @ Yottaa,Inc
+-- Copyright (C) 2018 4mig4 
 --
+
 -- Constants definition
 --
-module("consts",package.seeall)
 
 local amqp = {
 
@@ -162,9 +163,9 @@ local amqp = {
       INTERNAL_ERROR      = 541
    },
 
-   PRODUCT = "amqp-lua",
-   VERSION  = "1.0",
-   COPYRIGHT = "Copyright (c) 2016 Meng Zhang @Yottaa,Inc",
+   PRODUCT = "lua-amqp",
+   VERSION  = "1.0.2",
+   COPYRIGHT = "Copyright (c) 2016,2017,2018 Meng Zhang @Yottaa,Inc , 4mig4",
    LOCALE = "en_US",
    MECHANISM_PLAIN = "PLAIN"
 }

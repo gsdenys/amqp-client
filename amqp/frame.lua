@@ -8,11 +8,11 @@
 
 module("frame",package.seeall)
 
-local c = require "resty.amqp.consts"
-local buffer = require "resty.amqp.buffer"
-local logger = require "resty.amqp.logger"
+local c = require "amqp.consts"
+local buffer = require "amqp.buffer"
+local logger = require "amqp.logger"
+local bit = require('bit')
 
-local bit = require "bit"
 local band = bit.band
 local bor = bit.bor
 
@@ -21,7 +21,7 @@ local byte = string.byte
 local debug = logger.dbg
 local is_debug_enabled = logger.is_debug_enabled
 
-local _M = {}
+local frame = {}
 
 local function declare_exchange_flags(method)
    local bits = 0
@@ -1169,7 +1169,7 @@ local function header_frame(ctx,channel,size)
       f.properties.headers = b:get_field_table()
    end
 
-   if band(flag,c.flag.DELIVERY_MODE) ~= 0 then
+   if band(flag,c.flag.DELIVERYframeODE) ~= 0 then
       f.properties.delivery_mode = b:get_i8()
    end
 
@@ -1247,7 +1247,7 @@ if _G.ngx and _G.ngx.match then
    match = ngx.match
 end
 
-function _M.consume_frame(ctx)
+function frame.consume_frame(ctx)
    local sock = ctx.sock
    local data,err = sock:receive(7)
    if not data then
@@ -1348,7 +1348,7 @@ local function flags_mask(frame)
       mask = bor(mask,c.flag.HEADERS)
    end
    if frame.properties.delivery_mode ~= nil then
-      mask = bor(mask,c.flag.DELIVERY_MODE)
+      mask = bor(mask,c.flag.DELIVERYframeODE)
    end
    if frame.properties.priority ~= nil then
       mask = bor(mask,c.flag.PRIORITY)
@@ -1398,7 +1398,7 @@ local function encode_header_frame(frame)
       b:put_field_table(frame.properties.headers)
    end
 
-   if band(flags,c.flag.DELIVERY_MODE) ~= 0 then
+   if band(flags,c.flag.DELIVERYframeODE) ~= 0 then
       b:put_i8(frame.properties.delivery_mode)
    end
 
@@ -1450,25 +1450,25 @@ local function encode_heartbeat_frame(frame)
 end
 
 
-local mt = { __index = _M }
+local mt = { __index = frame }
 --
 -- new a frame
 --
-function _M.new(typ,channel)
+function frame.new(typ,channel)
    return setmetatable({
          typ = typ,
          channel = channel
                        }, mt)
 end
 
-function _M.new_method_frame(channel,class_id,method_id)
-   local frame = _M.new(c.frame.METHOD_FRAME, channel)
+function frame.new_method_frame(channel,class_id,method_id)
+   local frame = frame.new(c.frame.METHOD_FRAME, channel)
    frame.class_id = class_id
    frame.method_id = method_id
    return frame
 end
 
-function _M:encode()
+function frame:encode()
    local typ = self.typ
    if not typ then
       local err = "no frame type specified."
@@ -1495,17 +1495,17 @@ end
 -- protocol
 --
 
-function _M.wire_protocol_header(ctx)
+function frame.wire_protocol_header(ctx)
    local sock = ctx.sock
    local bytes, err = sock:send("AMQP\0\0\9\1")
    if not bytes then
       return nil, err
    end
-   return _M.consume_frame(ctx)
+   return frame.consume_frame(ctx)
 end
 
-function _M.wire_heartbeat(ctx)
-   local frame = _M.new(c.frame.HEARTBEAT_FRAME,c.DEFAULT_CHANNEL)
+function frame.wire_heartbeat(ctx)
+   local frame = frame.new(c.frame.HEARTBEAT_FRAME,c.DEFAULT_CHANNEL)
 
    local msg = frame:encode()
    local sock = ctx.sock
@@ -1517,8 +1517,8 @@ function _M.wire_heartbeat(ctx)
    return bytes
 end
 
-function _M.wire_header_frame(ctx,body_size,properties)
-   local frame = _M.new(c.frame.HEADER_FRAME,ctx.opts.channel or 1)
+function frame.wire_header_frame(ctx,body_size,properties)
+   local frame = frame.new(c.frame.HEADER_FRAME,ctx.opts.channel or 1)
    frame.class_id = c.class.BASIC
    frame.weight = 0
    frame.size = body_size
@@ -1534,8 +1534,8 @@ function _M.wire_header_frame(ctx,body_size,properties)
    return bytes
 end
 
-function _M.wire_body_frame(ctx,payload)
-   local frame = _M.new(c.frame.BODY_FRAME,ctx.opts.channel or 1)
+function frame.wire_body_frame(ctx,payload)
+   local frame = frame.new(c.frame.BODY_FRAME,ctx.opts.channel or 1)
    frame.class_id = c.class.BASIC
    frame.body = payload
    local msg = frame:encode()
@@ -1562,7 +1562,7 @@ local function ongoing(ctx,frame)
    ctx.ongoing.method_id = frame.method_id
 end
 
-function _M.wire_method_frame(ctx,frame)
+function frame.wire_method_frame(ctx,frame)
    local msg = frame:encode()
    local sock = ctx.sock
    local bytes,err = sock:send(msg)
@@ -1572,7 +1572,7 @@ function _M.wire_method_frame(ctx,frame)
 
    debug("[wire_method_frame] wired a frame.", "[class_id]: ", frame.class_id, "[method_id]: ", frame.method_id)
    if frame.method ~= nil and not frame.method.no_wait then
-      local f, err = _M.consume_frame(ctx)
+      local f, err = frame.consume_frame(ctx)
       if f then
          debug("[wire_method_frame] channel: ",f.channel)
          if f.method then
@@ -1597,4 +1597,4 @@ function _M.wire_method_frame(ctx,frame)
    return true
 end
 
-return _M
+return frame
