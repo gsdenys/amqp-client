@@ -1169,7 +1169,7 @@ local function header_frame(ctx,channel,size)
       f.properties.headers = b:get_field_table()
    end
 
-   if band(flag,c.flag.DELIVERYframeODE) ~= 0 then
+   if band(flag,c.flag.DELIVERY_MODE) ~= 0 then
       f.properties.delivery_mode = b:get_i8()
    end
 
