@@ -26,6 +26,12 @@ This fork contains the code that is missing in the original library.
 
 ### Examples Requirements
 
+* lua inspect is needed 
+
+```
+luarocks install inspect
+```
+
 ## Typical Use Cases
 
 The examples below are really really misleading, so please look at the example directory instead.
