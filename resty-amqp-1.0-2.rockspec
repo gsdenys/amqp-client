@@ -18,10 +18,10 @@ dependencies = {
 build = {
    type = "builtin",
    modules = {
-     ['resty.amqp'] = "resty/amqp.lua",
-     ['resty.amqp.buffer'] = "resty/amqp/buffer.lua",
-     ['resty.amqp.consts'] = "resty/amqp/consts.lua",
-     ['resty.amqp.frame'] = "resty/amqp/frame.lua",
-     ['resty.amqp.logger'] = "resty/amqp/logger.lua"
+     ['amqp'] = "amqp.lua",
+     ['amqp.buffer'] = "amqp/buffer.lua",
+     ['amqp.consts'] = "amqp/consts.lua",
+     ['amqp.frame'] = "amqp/frame.lua",
+     ['amqp.logger'] = "amqp/logger.lua"
    }
 }
