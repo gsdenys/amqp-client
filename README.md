@@ -10,7 +10,8 @@ https://github.com/ZigzagAK/amqp
 ## Additional features
 This fork contains the code that is missing in the original library.
 * Decode all AMQP packets
-* Several other fixes and examples on how to use this library.
+* Several other fixes
+* Examples on how to use this library.
 
 ## Requirements
 1. LuaJIT 2.1
