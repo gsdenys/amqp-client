@@ -1,16 +1,15 @@
 --
 -- Copyright (C) 2016 Meng Zhang @ Yottaa,Inc
+-- Copyright (C) 2018 4mig4
 --
 --
 -- [0].https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf
 -- [1].https://www.rabbitmq.com/amqp-0-9-1-reference.html
 --
 
-module("frame",package.seeall)
-
-local c = require "amqp.consts"
-local buffer = require "amqp.buffer"
-local logger = require "amqp.logger"
+local c = require('amqp.consts')
+local buffer = require('amqp.buffer')
+local logger = require('amqp.logger')
 local bit = require('bit')
 
 local band = bit.band
