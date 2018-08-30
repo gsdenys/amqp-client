@@ -10,7 +10,7 @@ local logger = {}
 
 
 -- logging scaffold
-local log = nil
+local log
 if _G.ngx and _G.ngx.log then
    log = ngx.log
 else
@@ -43,10 +43,10 @@ local function to_string(v)
    local s = "["
    for k,v in pairs(v) do
       if k ~= nil then
-	 s = s .. to_string(k) .. ":"
+         s = s .. to_string(k) .. ":"
       end
       if v ~= nil then
-	 s = s .. to_string(v)
+         s = s .. to_string(v)
       end
       s = s .. " "
    end
@@ -56,7 +56,7 @@ end
 
 local function va_table_to_string(tbl)
    local res = ""
-   for k,v in pairs(tbl) do
+   for _,v in pairs(tbl) do
       res = res .. to_string(v) .. "\t"
    end
    return res
@@ -67,14 +67,17 @@ function logger.set_level(level)
 end
 
 function logger.error(...)
-   log(ERR,va_table_to_string({...}))
+   if level_ < ERR then
+      return
+   end
+   log(ERR, va_table_to_string({...}))
 end
 
 function logger.info(...)
    if level_ < INFO then
       return
    end
-   log(INFO,va_table_to_string({...}))
+   log(INFO, va_table_to_string({...}))
 end
 
 function logger.dbg(...)
@@ -82,7 +85,11 @@ function logger.dbg(...)
       return
    end
 
-   log(DEBUG,va_table_to_string({...}))
+   log(DEBUG, va_table_to_string({...}))
+end
+
+function logger.is_debug_enabled()
+   return level_ == DEBUG
 end
 
 return logger

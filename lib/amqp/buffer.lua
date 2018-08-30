@@ -20,7 +20,7 @@ local format = string.format
 
 local ok, new_tab = pcall(require, "table.new")
 if not ok or type(new_tab) ~= "function" then
-   new_tab = function (narr, nrec) return {} end
+   new_tab = function (_,_) return {} end
 end
 
 local _M = {}
@@ -110,7 +110,7 @@ end
 function _M:get_decimal()
    local scale = self:get_i8()
    local value = self:get_i32()
-   local d = {scale = sacle, value = value}
+   local d = {scale = scale, value = value}
    return d
 end
 
@@ -132,7 +132,7 @@ function _M:get_field_array()
    local a = {}
    local p = self.pos_
    while size > 0 do
-      f = self:field_value()
+      local f = self:field_value()
       a[#a+1] = f
       size = size - (self.pos_ - p)
       p = self.pos_
@@ -148,14 +148,13 @@ function _M:get_field_table()
    local k,v
    while size > 0 do
       k = self:get_short_string()
---      logger.dbg("k",k)
       v = self:field_value()
       size = size - self.pos_ + p
       p = self.pos_
       r[k] = v
    end
 
-   return r,pos_
+   return r
 end
 
 
@@ -264,15 +263,15 @@ end
 local fields_ = {
    t = {
       r = function (self)
-	 local b =  self:get_i8()
-	 return b ~= 0
+        local b = self:get_i8()
+        return b ~= 0
       end,
       w = function (self,val)
-	 local b = 0
-	 if val ~= 0 then
-	    b = 1
-	 end
-	 self:put_i8(b)
+        local b = 0
+        if val ~= 0 then
+            b = 1
+        end
+        self:put_i8(b)
       end
    },
    b = {
@@ -339,9 +338,13 @@ local fields_ = {
       r = _M.get_field_table,
       w = _M.put_field_table
    },
+   x = {
+      r = _M.get_long_string,
+      w = _M.put_long_string
+   },
    V = {
-      r = function(self)
-	 return nil
+      r = function()
+        return nil
       end,
       w = nil
    }
@@ -373,7 +376,7 @@ function _M:put_field_value(value)
    elseif t == 'table' then
       typ = 'F'
       if is_array(value) then
-	 typ = 'A'
+          typ = 'A'
       end
    end
 
