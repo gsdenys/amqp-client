@@ -1,6 +1,6 @@
 --
 -- Copyright (C) 2016 Meng Zhang @ Yottaa,Inc
--- Copyright (C) 2018 4mig4 
+-- Copyright (C) 2018 4mig4
 --
 
 local logger = require('amqp.logger')
