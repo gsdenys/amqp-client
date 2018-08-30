@@ -2,13 +2,9 @@
 -- Copyright (C) 2016 Meng Zhang @ Yottaa,Inc
 --
 
-module("amqp",package.seeall)
-
 local c = require ('resty.amqp.consts')
 local frame = require ('resty.amqp.frame')
 local logger = require ('resty.amqp.logger')
-
-local bit = require('bit')
 
 local band = bit.band
 local bor = bit.bor
@@ -20,7 +16,9 @@ local gmatch = string.gmatch
 local min = math.min
 
 local socket
--- let ngx.socket take precedence to
+
+-- let ngx.socket take precedence to lua socket
+
 if _G.ngx and _G.ngx.socket then
   socket = ngx.socket
 else
