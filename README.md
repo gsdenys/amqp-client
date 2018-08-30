@@ -19,7 +19,6 @@ This fork contains the code that is missing in the original library.
 * Examples on how to use this library.
 * Removed bitopers.lua as I do not need it and it was not working, if someone else wants to provide a better solution for compatibility with Lua 5.1 please do not hesitate to pull request.
 
-
 ## Requirements
 
 1. LuaJIT 2.1
