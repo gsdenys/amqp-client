@@ -507,7 +507,7 @@ function amqp:basic_ack(ok, delivery_tag)
     no_wait = true
   }
 
-  return frame.wire_method_frame(ctx, f)
+  return frame.wire_method_frame(self,f)
 end
 
 function amqp:consume_loop(callback)
@@ -615,7 +615,7 @@ function amqp:consume_loop(callback)
       end
       if not self.opts.no_ack then
         -- ack
-        amqp.basic_ack(self,status, f_deliver.delivery_tag)
+        self:basic_ack(status, f_deliver.delivery_tag)
       end
       f_deliver, f_header = nil, nil
       logger.dbg("[body]", f.body)
