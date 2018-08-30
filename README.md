@@ -23,6 +23,7 @@ This fork contains the code that is missing in the original library.
 
 1. LuaJIT 2.1
 2. busted 2.0 (Testing framework)
+3. luabitop (if you are using lua 5.1)
 
 ### Examples
 
