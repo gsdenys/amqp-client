@@ -1,4 +1,4 @@
-# AMQP
+# RESTY AMQP
 
 Lua Client for AMQP 0.9.1
 
