@@ -12,8 +12,6 @@ local buffer = require('amqp.buffer')
 local logger = require('amqp.logger')
 local bit = require('bit')
 
-local inspect = require('inspect')
-
 local band = bit.band
 local bor = bit.bor
 
