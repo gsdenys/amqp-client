@@ -1132,6 +1132,7 @@ local function method_frame(data,channel)
 end
 
 local function header_frame(data,channel)
+
    local frame_ = { channel = channel, properties = {} }
    local b = buffer.new(data)
 
@@ -1217,8 +1218,8 @@ local function body_frame(data,channel)
 end
 
 
-local function heartbeat_frame(--[[ctx--]]_,channel,size)
-   local frame_ = { channel = channel}
+local function heartbeat_frame(channel,size)
+   local frame_ = { channel = channel }
    if size > 0 then
       return nil
    end
@@ -1232,6 +1233,7 @@ if _G.ngx and _G.ngx.match then
 end
 
 function frame.consume_frame(ctx)
+
    local ok
    local err
    local fe
@@ -1247,7 +1249,7 @@ function frame.consume_frame(ctx)
 
    local b = buffer.new(data)
    if is_debug_enabled() then
-      debug("[frame] 1st 7octets: ",b:hex_dump())
+      debug("[frame] take the first 7 octets: ",b:hex_dump())
    end
 
    local typ = b:get_i8()
@@ -1266,7 +1268,7 @@ function frame.consume_frame(ctx)
    elseif typ == c.frame.BODY_FRAME then
       ok,fe,err = pcall(body_frame,data,channel)
    elseif typ == c.frame.HEARTBEAT_FRAME then
-      ok,fe,err = pcall(heartbeat_frame,data,channel)
+      ok,fe,err = pcall(heartbeat_frame,channel,size)
    else
       ok = nil
       err = "invalid frame type"
