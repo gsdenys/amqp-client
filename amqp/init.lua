@@ -658,6 +658,49 @@ function amqp:consume()
 end
 
 --
+-- get
+--
+function amqp:get()
+  local ok, res, err
+  ok, err = self:setup()
+  if not ok then
+    self:teardown()
+    return nil, err
+  end
+
+  if self.channel_state ~= c.state.ESTABLISHED then
+    self:teardown()
+    return nil, err
+  end
+
+  res, err = amqp.basic_get(self)
+  if not res then
+    logger.error("[amqp:get] basic_get failed: " .. err)
+    return nil, err
+  end
+
+  local message
+  if res.method_id == c.method.basic.GET_OK and res.method.message_count > 0 then
+    local f = frame.consume_frame(self)
+    if f.type == c.frame.HEADER_FRAME then
+      logger.dbg(format("[header] class_id: %d weight: %d, body_size: %d",
+                        f.class_id, f.weight, f.body_size))
+      logger.dbg("[frame.properties]",f.properties)
+    end
+
+    f = frame.consume_frame(self)
+    if f.type == c.frame.BODY_FRAME then
+      message = f.body
+    end
+    logger.dbg("[message]", message)
+  end
+
+  self:teardown()
+
+  return message, err
+end
+
+--
 -- publisher
 --
 
@@ -914,6 +957,24 @@ function amqp:basic_publish(opts)
     return nil,"[basic_publish]" .. err
   end
   return bytes
+end
+
+function amqp:basic_get(opts)
+ opts = opts or {}
+
+ if not opts.queue and not self.opts.queue then
+    return nil, "[basic_get] queue is not specified."
+ end
+
+ local f = frame.new_method_frame(self.channel or 1,
+                                  c.class.BASIC,
+                                  c.method.basic.GET)
+
+ f.method = {
+    queue = opts.queue or self.opts.queue,
+    no_ack = _getopt('no_ack', opts, self.opts, true)
+ }
+ return frame.wire_method_frame(self,f)
 end
 
 return amqp
