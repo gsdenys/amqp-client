@@ -1,6 +1,6 @@
 --
 -- Copyright (C) 2016 Meng Zhang @ Yottaa,Inc
--- Copyright (C) 2018 4mig4 
+-- Copyright (C) 2018 4mig4
 --
 -- logger
 --
@@ -30,17 +30,17 @@ end
 
 local level_ = INFO
 
-local function to_string(v)
-   if v == nil then
+local function to_string(v_)
+   if v_ == nil then
       return ""
    end
 
-   if type(v) ~= "table" then
-      return tostring(v)
+   if type(v_) ~= "table" then
+      return tostring(v_)
    end
 
    local s = "["
-   for k,v in pairs(v) do
+   for k,v in pairs(v_) do
       if k ~= nil then
          s = s .. to_string(k) .. ":"
       end
