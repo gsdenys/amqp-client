@@ -21,7 +21,7 @@
 ---------------------------------------------------------------------------------
 
 
---       PING PONG (Client) example 
+--       PING PONG (Client) example
 --       https://www.rabbitmq.com/direct-reply-to.html
 
 ---------------------------------------------------------------------------------
@@ -38,14 +38,14 @@ local inspect = require('inspect')
 -- Instantiate a context
 --
 
-local ctx = amqp:new({role = "consumer", 
+local ctx = amqp:new({role = "consumer",
                       exchange = '',
-                      queue = 'amq.rabbitmq.reply-to', 
+                      queue = 'amq.rabbitmq.reply-to',
                       routing_key = 'test',
                       ssl = false,
                       user = "guest",
                       password = "guest",
-                      no_ack = true, 
+                      no_ack = true,
                       durable = true,
                       auto_delete = true,
                       consumer_tag = '',
@@ -53,28 +53,27 @@ local ctx = amqp:new({role = "consumer",
                       properties = {}
                     })
 
-
 --
 -- Define callback function that will process the answer (see below)
 --
 
-ctx.opts.callback =  
+ctx.opts.callback =
   function(f)
 
     print('---f---',inspect(f))
 
-    if f.body == 'pong' then 
+    if f.body == 'pong' then
 
       print('received: pong')
 
       local payload = 'ping'
       local correlation_id = uuid.generate()
-      local properties = { 
+      local properties = {
                            reply_to = 'amq.rabbitmq.reply-to',
                            content_type = 'application/json',
                            content_encoding = 'utf-8',
                            correlation_id = correlation_id,
-                           delivery_mode = 2, 
+                           delivery_mode = 2,
                            headers = { ['api-version'] = 1,   -- custome headers
                                        correlation_id = correlation_id }
                          }
@@ -89,10 +88,11 @@ ctx.opts.callback =
 
       end
     end
- 
-local ok , err = ctx:connect("127.0.0.1",5672)
 
-if not ok then 
+local ok, err
+ok , err = ctx:connect("127.0.0.1",5672)
+
+if not ok then
   error('could not connect'..err)
 end
 
@@ -101,7 +101,7 @@ end
 --
 
 
-local ok, err = ctx:setup() -- because of this we need to use consume_loop()
+ok, err = ctx:setup() -- because of this we need to use consume_loop()
 
 if not ok then
   error('could not setup: '..err)
@@ -111,7 +111,7 @@ end
 -- Prepare to consume
 --
 
-local ok, err = ctx:prepare_to_consume() -- this has to be right after setup()
+ok, err = ctx:prepare_to_consume() -- this has to be right after setup()
 
 if not ok then
   error('could not prepare to consume: '..err)
@@ -122,19 +122,19 @@ end
 --
 
 local correlation_id = uuid.generate()
-local properties = {   
+local properties = {
                      reply_to = 'amq.rabbitmq.reply-to',
                      content_type = 'application/json',
                      content_encoding = 'utf-8',
-                     correlation_id = correlation_id, 
-                     delivery_mode = 2, 
+                     correlation_id = correlation_id,
+                     delivery_mode = 2,
                      headers = { ['api-version'] = 1,
                                  correlation_id = correlation_id }
                    }
 
 local payload = 'ping'
 
-local  ok, err = ctx:publish(payload, ctx.opts, properties)
+ok, err = ctx:publish(payload, ctx.opts, properties)
 
 if not ok then
   error('could not publish: '..err)
@@ -148,10 +148,10 @@ print('sent: ping')
 
 -- Enter consume loop
 -- callback will be called only on reception of BODY_FRAME.
--- setup() and prepare_to_consume() calls are needed because were are using 
--- consume_loop(callback) method and not consume() method. 
+-- setup() and prepare_to_consume() calls are needed because were are using
+-- consume_loop(callback) method and not consume() method.
 
-local ok, err = ctx:consume_loop(ctx.opts.callback)
+ok = ctx:consume_loop(ctx.opts.callback)
 
 if not ok then
   error('could not consume loop: ')
