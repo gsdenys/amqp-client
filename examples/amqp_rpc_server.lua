@@ -21,37 +21,36 @@
 ---------------------------------------------------------------------------------
 
 
---        PING-PONG (Server) example 
---        https://www.rabbitmq.com/direct-reply-to.html 
+--        PING-PONG (Server) example
+--        https://www.rabbitmq.com/direct-reply-to.html
 
 ---------------------------------------------------------------------------------
 -- Requires
 
 local amqp = require('amqp')
-local uuid = require('resty.uuid')
 local inspect = require('inspect')
 
 ---------------------------------------------------------------------------------
--- Main 
+-- Main
 
 --
 -- Instantiates context
 --
 
-local ctx = amqp:new({role = 'consumer', 
+local ctx = amqp:new({role = 'consumer',
                       exchange = '',
-                      queue = 'test', 
+                      queue = 'rpc_queue',
                       routing_key = '',
                       ssl = false,
                       user = 'guest',
                       password = 'guest',
-                      no_ack = false, 
+                      no_ack = false,
                       durable = true,
                       auto_delete = true,
                       consumer_tag = '',
                       exclusive = false,
                       properties = {}
-                      } 
+                      }
                     )
 
 --
@@ -62,7 +61,8 @@ ctx.opts.callback = function(f)
   print('-- f --', inspect(f))
   if f.body == 'ping' then
     print('received: ping')
-    response = 'pong'
+    local response = 'pong'
+    local correlation_id
 
     if f.properties.reply_to then
       ctx.opts.routing_key = f.properties.reply_to
@@ -70,9 +70,9 @@ ctx.opts.callback = function(f)
 
     if f.properties.correlation_id then
       correlation_id = f.properties.correlation_id
-    end 
+    end
 
-    local properties = { correlation_id = correlation_id, 
+    local properties = { correlation_id = correlation_id,
                          delivery_mode = 2,
                          headers = { ['api-version'] = 1, -- custom headers
                                      correlation_id = correlation_id }
@@ -84,7 +84,7 @@ ctx.opts.callback = function(f)
       print('sent: pong')
       return true
     else
-      return nil, 'could not publish'
+      return nil, 'could not publish' .. inspect(err)
     end
   end
 end
@@ -93,9 +93,10 @@ end
 -- Connect to AMQP server (broker)
 --
 
-local ok, err = ctx:connect('127.0.0.1',5672)
+local ok, err
+ok = ctx:connect('127.0.0.1',5672)
 
-if not ok then 
+if not ok then
   error('failed to connect')
 end
 
@@ -104,13 +105,13 @@ end
 --
 
 -- Callback will be called only on reception of BODY_FRAME.
--- No need for setup() or prepare_to_consume() calls because were are using 
--- consume() and not consume_loop(callback), also note that consume() the 
--- callback function is passed thru the ctx context and not as an argument 
+-- No need for setup() or prepare_to_consume() calls because were are using
+-- consume() and not consume_loop(callback), also note that consume() the
+-- callback function is passed thru the ctx context and not as an argument
 -- of the method like in in consume_loop()
 
-local ok, err = ctx:consume()
+ok, err = ctx:consume()
 
-if not ok then 
+if not ok then
   error('consume failed: '..err)
 end
