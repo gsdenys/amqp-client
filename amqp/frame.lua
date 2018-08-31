@@ -12,6 +12,8 @@ local buffer = require('amqp.buffer')
 local logger = require('amqp.logger')
 local bit = require('bit')
 
+local inspect = require('inspect')
+
 local band = bit.band
 local bor = bit.bor
 
@@ -148,12 +150,12 @@ local function parse_queue_delete_flags(bits)
 end
 
 local function decode_close_reply(b)
-   local frame = {}
-   frame.reply_code = b:get_i16()
-   frame.reply_text = b:get_short_string()
-   frame.class_id = b:get_i16()
-   frame.method_id = b:get_i16()
-   return frame
+   local frame_ = {}
+   frame_.reply_code = b:get_i16()
+   frame_.reply_text = b:get_short_string()
+   frame_.class_id = b:get_i16()
+   frame_.method_id = b:get_i16()
+   return frame_
 end
 
 local function encode_close_reply(method)
@@ -1104,15 +1106,15 @@ local methods_ = {
 --
 
 local function method_frame(data,channel)
-   local frame = { channel = channel }
+   local frame_ = { channel = channel }
    local b = buffer.new(data)
    if is_debug_enabled() then
       debug("[method_frame]",b:hex_dump())
    end
    local class_id = b:get_i16()
    local method_id = b:get_i16()
-   frame.class_id = class_id
-   frame.method_id = method_id
+   frame_.class_id = class_id
+   frame_.method_id = method_id
    debug("[method_frame] class_id:",class_id, "method_id:", method_id)
    local codec = methods_[class_id][method_id]
    if not codec then
@@ -1125,98 +1127,102 @@ local function method_frame(data,channel)
       return nil, err
    end
    debug("[method_frame] class:",methods_[class_id].name, "method:", codec.name)
-   frame.method = codec.r(b)
-   return frame
+   frame_.method = codec.r(b)
+   return frame_
 end
 
 local function header_frame(data,channel)
-   local f = { channel = channel, properties = {} }
+   local frame_ = { channel = channel, properties = {} }
    local b = buffer.new(data)
+
    if is_debug_enabled() then
       debug("[header_frame]",b:hex_dump())
    end
 
-   f.class_id = b:get_i16()
-   f.weight = b:get_i16()
-   f.body_size = b:get_i64()
+   frame_.class_id = b:get_i16()
+   frame_.weight = b:get_i16()
+   frame_.body_size = b:get_i64()
+
    local flag = b:get_i16()
-   f.flag = flag
+
+   frame_.flag = flag
+
    if band(flag,c.flag.CONTENT_TYPE) ~= 0 then
-      f.properties.content_type= b:get_short_string()
+      frame_.properties.content_type= b:get_short_string()
    end
 
    if band(flag,c.flag.CONTENT_ENCODING) ~= 0 then
-      f.properties.content_encoding = b:get_short_string()
+      frame_.properties.content_encoding = b:get_short_string()
    end
 
    if band(flag,c.flag.HEADERS) ~= 0 then
-      f.properties.headers = b:get_field_table()
+      frame_.properties.headers = b:get_field_table()
    end
 
    if band(flag,c.flag.DELIVERY_MODE) ~= 0 then
-      f.properties.delivery_mode = b:get_i8()
+      frame_.properties.delivery_mode = b:get_i8()
    end
 
    if band(flag,c.flag.PRIORITY) ~= 0 then
-      f.properties.priority = b:get_i8()
+      frame_.properties.priority = b:get_i8()
    end
 
    if band(flag,c.flag.CORRELATION_ID) ~= 0 then
-      f.properties.correlation_id = b:get_short_string()
+      frame_.properties.correlation_id = b:get_short_string()
    end
 
    if band(flag,c.flag.REPLY_TO) ~= 0 then
-      f.properties.reply_to = b:get_short_string()
+      frame_.properties.reply_to = b:get_short_string()
    end
 
    if band(flag,c.flag.EXPIRATION) ~= 0 then
-      f.properties.expiration = b:get_short_string()
+      frame_.properties.expiration = b:get_short_string()
    end
 
    if band(flag,c.flag.MESSAGE_ID) ~= 0 then
-      f.properties.message_id = b:get_short_string()
+      frame_.properties.message_id = b:get_short_string()
    end
 
    if band(flag,c.flag.TIMESTAMP) ~= 0 then
-      f.properties.timestamp = b:get_timestamp()
+      frame_.properties.timestamp = b:get_timestamp()
    end
 
    if band(flag,c.flag.TYPE) ~= 0 then
-      f.properties.type = b:get_short_string()
+      frame_.properties.type = b:get_short_string()
    end
 
    if band(flag,c.flag.USER_ID) ~= 0 then
-      f.properties.user_id = b:get_short_string()
+      frame_.properties.user_id = b:get_short_string()
    end
 
    if band(flag,c.flag.APP_ID) ~= 0 then
-      f.properties.app_id = b:get_short_string()
+      frame_.properties.app_id = b:get_short_string()
    end
 
    if band(flag,c.flag.RESERVED1) ~= 0 then
-      f.properties.reserved1 = b:get_short_string()
+      frame_.properties.reserved1 = b:get_short_string()
    end
 
-   return f
+   return frame_
 end
 
 local function body_frame(data,channel)
-   local frame = { channel = channel }
+   local frame_ = { channel = channel }
    local b = buffer.new(data)
    if is_debug_enabled() then
       debug("[body_frame]",b:hex_dump())
    end
-   frame.body = b:payload()
-   return frame
+   frame_.body = b:payload()
+   return frame_
 end
 
 
 local function heartbeat_frame(--[[ctx--]]_,channel,size)
-   local frame = { channel = channel}
+   local frame_ = { channel = channel}
    if size > 0 then
       return nil
    end
-   return frame
+   return frame_
 end
 
 local match = string.match
@@ -1226,22 +1232,30 @@ if _G.ngx and _G.ngx.match then
 end
 
 function frame.consume_frame(ctx)
+   local ok
+   local err
+   local fe
+   local data
+
    local sock = ctx.sock
-   local data,err = sock:receive(7)
+
+   data,err = sock:receive(7)
+
    if not data then
       return nil, err
    end
-
-   local ok,fe,err
 
    local b = buffer.new(data)
    if is_debug_enabled() then
       debug("[frame] 1st 7octets: ",b:hex_dump())
    end
+
    local typ = b:get_i8()
    local channel = b:get_i16()
    local size = b:get_i32()
+
    data, err = sock:receive(size)
+
    if not data then
       return nil, err
    end
@@ -1302,152 +1316,148 @@ local function encode_frame(typ,channel,payload)
 end
 
 
-local function encode_method_frame(frame)
+local function encode_method_frame(frame_)
    local b = buffer.new()
-   b:put_i16(frame.class_id)
-   b:put_i16(frame.method_id)
-   local payload = methods_[frame.class_id][frame.method_id].w(frame.method)
+   b:put_i16(frame_.class_id)
+   b:put_i16(frame_.method_id)
+   local payload = methods_[frame_.class_id][frame_.method_id].w(frame_.method)
    if payload then
       b:put_payload(payload)
    end
-   return encode_frame(c.frame.METHOD_FRAME,frame.channel,b:payload())
+   return encode_frame(c.frame.METHOD_FRAME,frame_.channel,b:payload())
 end
 
-local function flags_mask(frame)
+local function flags_mask(frame_)
    local mask = 0
-
-   if not frame.properties then
+   if not frame_.properties then
       return mask
    end
-   if frame.properties.content_type ~= nil then
+   if frame_.properties.content_type ~= nil then
       mask = bor(mask,c.flag.CONTENT_TYPE)
    end
-
-   if frame.properties.content_encoding ~= nil then
+   if frame_.properties.content_encoding ~= nil then
       mask = bor(mask,c.flag.CONTENT_ENCODING)
    end
-   if frame.properties.headers ~= nil then
+   if frame_.properties.headers ~= nil then
       mask = bor(mask,c.flag.HEADERS)
    end
-   if frame.properties.delivery_mode ~= nil then
+   if frame_.properties.delivery_mode ~= nil then
       mask = bor(mask,c.flag.DELIVERY_MODE)
    end
-   if frame.properties.priority ~= nil then
+   if frame_.properties.priority ~= nil then
       mask = bor(mask,c.flag.PRIORITY)
    end
-   if frame.properties.correlation_id ~= nil then
+   if frame_.properties.correlation_id ~= nil then
       mask = bor(mask,c.flag.CORRELATION_ID)
    end
-   if frame.properties.reply_to ~= nil then
+   if frame_.properties.reply_to ~= nil then
       mask = bor(mask,c.flag.REPLY_TO)
    end
-   if frame.properties.expiration ~= nil then
+   if frame_.properties.expiration ~= nil then
       mask = bor(mask,c.flag.EXPIRATION)
    end
-   if frame.properties.timestamp ~= nil then
+   if frame_.properties.timestamp ~= nil then
       mask = bor(mask,c.flag.TIMESTAMP)
    end
-   if frame.properties.type ~= nil then
+   if frame_.properties.type ~= nil then
       mask = bor(mask,c.flag.TYPE)
    end
-   if frame.properties.user_id ~= nil then
+   if frame_.properties.user_id ~= nil then
       mask = bor(mask,c.flag.USER_ID)
    end
-   if frame.properties.app_id ~= nil then
+   if frame_.properties.app_id ~= nil then
       mask = bor(mask,c.flag.APP_ID)
    end
-
    return mask
 end
 
-local function encode_header_frame(frame)
+local function encode_header_frame(frame_)
    local b = buffer.new()
-   b:put_i16(frame.class_id)
-   b:put_i16(frame.weight)
-   b:put_i64(frame.size)
+   b:put_i16(frame_.class_id)
+   b:put_i16(frame_.weight)
+   b:put_i64(frame_.size)
 
-   local flags = flags_mask(frame)
+   local flags = flags_mask(frame_)
    b:put_i16(flags)
    if band(flags,c.flag.CONTENT_TYPE) ~= 0 then
-      b:put_short_string(frame.properties.content_type)
+      b:put_short_string(frame_.properties.content_type)
    end
 
    if band(flags,c.flag.CONTENT_ENCODING) ~= 0 then
-      b:put_short_string(frame.properties.content_encoding)
+      b:put_short_string(frame_.properties.content_encoding)
    end
 
    if band(flags,c.flag.HEADERS) ~= 0 then
-      b:put_field_table(frame.properties.headers)
+      b:put_field_table(frame_.properties.headers)
    end
 
    if band(flags,c.flag.DELIVERY_MODE) ~= 0 then
-      b:put_i8(frame.properties.delivery_mode)
+      b:put_i8(frame_.properties.delivery_mode)
    end
 
    if band(flags,c.flag.PRIORITY) ~= 0 then
-      b:put_i8(frame.properties.priority)
+      b:put_i8(frame_.properties.priority)
    end
 
    if band(flags,c.flag.CORRELATION_ID) ~= 0 then
-      b:put_short_string(frame.properties.correlation_id)
+      b:put_short_string(frame_.properties.correlation_id)
    end
 
    if band(flags,c.flag.REPLY_TO) ~= 0 then
-      b:put_short_string(frame.properties.reply_to)
+      b:put_short_string(frame_.properties.reply_to)
    end
 
    if band(flags,c.flag.EXPIRATION) ~= 0 then
-      b:put_short_string(frame.properties.expiration)
+      b:put_short_string(frame_.properties.expiration)
    end
 
    if band(flags,c.flag.MESSAGE_ID) ~= 0 then
-      b:put_short_string(frame.properties.message_id)
+      b:put_short_string(frame_.properties.message_id)
    end
 
    if band(flags,c.flag.TIMESTAMP) ~= 0 then
-      b:put_time_stamp(frame.properties.timestamp)
+      b:put_time_stamp(frame_.properties.timestamp)
    end
 
    if band(flags,c.flag.TYPE) ~= 0 then
-      b:put_short_string(frame.properties.type)
+      b:put_short_string(frame_.properties.type)
    end
 
    if band(flags,c.flag.USER_ID) ~= 0 then
-      b:put_short_string(frame.properties.user_id)
+      b:put_short_string(frame_.properties.user_id)
    end
 
    if band(flags,c.flag.APP_ID) ~= 0 then
-      b:put_short_string(frame.properties.app_id)
+      b:put_short_string(frame_.properties.app_id)
    end
 
-   return encode_frame(c.frame.HEADER_FRAME,frame.channel,b:payload())
+   return encode_frame(c.frame.HEADER_FRAME,frame_.channel,b:payload())
 end
 
-local function encode_body_frame(frame)
-   return encode_frame(c.frame.BODY_FRAME,frame.channel,frame.body)
+local function encode_body_frame(frame_)
+   return encode_frame(c.frame.BODY_FRAME,frame_.channel,frame_.body)
 end
 
-local function encode_heartbeat_frame(frame)
-   return encode_frame(c.frame.HEARTBEAT_FRAME,frame.channel,nil)
+local function encode_heartbeat_frame(frame_)
+   return encode_frame(c.frame.HEARTBEAT_FRAME,frame_.channel,nil)
 end
 
 
 local mt = { __index = frame }
+
 --
 -- new a frame
 --
+
 function frame.new(typ,channel)
-   return setmetatable({
-         typ = typ,
-         channel = channel
-                       }, mt)
+  return setmetatable({ typ = typ, channel = channel }, mt)
 end
 
 function frame.new_method_frame(channel,class_id,method_id)
-   local frame = frame.new(c.frame.METHOD_FRAME, channel)
-   frame.class_id = class_id
-   frame.method_id = method_id
-   return frame
+   local frame_ = frame.new(c.frame.METHOD_FRAME, channel)
+   frame_.class_id = class_id
+   frame_.method_id = method_id
+   return frame_
 end
 
 function frame:encode()
@@ -1487,9 +1497,8 @@ function frame.wire_protocol_header(ctx)
 end
 
 function frame.wire_heartbeat(ctx)
-   local frame = frame.new(c.frame.HEARTBEAT_FRAME,c.DEFAULT_CHANNEL)
-
-   local msg = frame:encode()
+   local frame_ = frame.new(c.frame.HEARTBEAT_FRAME,c.DEFAULT_CHANNEL)
+   local msg = frame_:encode()
    local sock = ctx.sock
    local bytes, err = sock:send(msg)
    if not bytes then
@@ -1500,13 +1509,13 @@ function frame.wire_heartbeat(ctx)
 end
 
 function frame.wire_header_frame(ctx,body_size,properties)
-   local frame = frame.new(c.frame.HEADER_FRAME,ctx.opts.channel or 1)
-   frame.class_id = c.class.BASIC
-   frame.weight = 0
-   frame.size = body_size
-   frame.properties = properties
+   local frame_ = frame.new(c.frame.HEADER_FRAME,ctx.opts.channel or 1)
+   frame_.class_id = c.class.BASIC
+   frame_.weight = 0
+   frame_.size = body_size
+   frame_.properties = properties
 
-   local msg = frame:encode()
+   local msg = frame_:encode()
    local sock = ctx.sock
    local bytes, err = sock:send(msg)
    if not bytes then
@@ -1517,10 +1526,10 @@ function frame.wire_header_frame(ctx,body_size,properties)
 end
 
 function frame.wire_body_frame(ctx,payload)
-   local frame = frame.new(c.frame.BODY_FRAME,ctx.opts.channel or 1)
-   frame.class_id = c.class.BASIC
-   frame.body = payload
-   local msg = frame:encode()
+   local frame_ = frame.new(c.frame.BODY_FRAME,ctx.opts.channel or 1)
+   frame_.class_id = c.class.BASIC
+   frame_.body = payload
+   local msg = frame_:encode()
    local sock = ctx.sock
    local bytes, err = sock:send(msg)
    if not bytes then
@@ -1530,31 +1539,37 @@ function frame.wire_body_frame(ctx,payload)
 end
 
 
-local function is_channel_close_received(frame)
-   return frame ~= nil and frame.class_id == c.class.CHANNEL and frame.method_id == c.method.channel.CLOSE
+local function is_channel_close_received(frame_)
+   return frame_ ~= nil and frame_.class_id == c.class.CHANNEL and frame_.method_id == c.method.channel.CLOSE
 end
 
-local function is_connection_close_received(frame)
-   return frame ~= nil and frame.class_id == c.class.CONNECTION and frame.method_id == c.method.connection.CLOSE
+local function is_connection_close_received(frame_)
+   return frame_ ~= nil and frame_.class_id == c.class.CONNECTION and frame_.method_id == c.method.connection.CLOSE
 end
 
-local function ongoing(ctx,frame)
+local function ongoing(ctx,frame_)
    ctx.ongoing = ctx.ongoing or {}
-   ctx.ongoing.class_id = frame.class_id
-   ctx.ongoing.method_id = frame.method_id
+   ctx.ongoing.class_id = frame_.class_id
+   ctx.ongoing.method_id = frame_.method_id
 end
 
-function frame.wire_method_frame(ctx,frame)
-   local msg = frame:encode()
+function frame.wire_method_frame(ctx,frame_)
+   local f
+
+   local msg = frame_:encode()
    local sock = ctx.sock
    local bytes,err = sock:send(msg)
+
    if not bytes then
       return nil,"[wire_method_frame]" .. err
    end
 
-   debug("[wire_method_frame] wired a frame.", "[class_id]: ", frame.class_id, "[method_id]: ", frame.method_id)
-   if frame.method ~= nil and not frame.method.no_wait then
-      local f, err = frame.consume_frame(ctx)
+   debug("[wire_method_frame] wired a frame.", "[class_id]: ", frame_.class_id, "[method_id]: ", frame_.method_id)
+
+   if frame_.method ~= nil and not frame_.method.no_wait then
+
+      f, err = frame.consume_frame(ctx)
+
       if f then
          debug("[wire_method_frame] channel: ",f.channel)
          if f.method then
@@ -1563,14 +1578,14 @@ function frame.wire_method_frame(ctx,frame)
 
          if is_channel_close_received(f) then
             ctx.channel_state = c.state.CLOSE_WAIT
-            ongoing(ctx,frame)
+            ongoing(ctx,frame_)
             return nil, f.method.reply_code, f.method.reply_text
          end
 
          if is_connection_close_received(f) then
             ctx.channel_state = c.state.CLOSED
             ctx.connection_state = c.state.CLOSE_WAIT
-            ongoing(ctx,frame)
+            ongoing(ctx,frame_)
             return nil, f.method.reply_code, f.method.reply_text
          end
       end
