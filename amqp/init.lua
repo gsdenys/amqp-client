@@ -57,6 +57,7 @@ local function mandatory_options(opts)
   end
 end
 
+
 --
 -- initialize the context
 --
@@ -111,6 +112,17 @@ local function sslhandshake(ctx)
     logger.dbg("[amqp:connect] SSL handshake")
   end
   return ok, msg
+end
+
+
+use_cqueues = false
+
+if use_cqueues then
+  function amqp:send(str) return self.sock:xwrite(str, "nf") end
+  function amqp:receive(int) return self.socks:xread(int) end
+else
+  function amqp:send(str) return self.sock:send(str) end
+  function amqp:receive(size) return self.socks:receive(size) end
 end
 
 
@@ -253,7 +265,7 @@ function amqp:channel_open()
     logger.dbg("[channel_open] channel: ", res.channel)
     self.channel = res.channel
   end
-  return res
+  return res, err
 end
 
 function amqp:channel_close(reason)

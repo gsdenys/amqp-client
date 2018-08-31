@@ -1237,9 +1237,8 @@ function amqp_frame.consume_frame(ctx)
   local fe
   local data
 
-  local sock = ctx.sock
 
-  data,err = sock:receive(7)
+  data,err = ctx:receive(7)
 
   if not data then
     return nil, err
@@ -1254,7 +1253,7 @@ function amqp_frame.consume_frame(ctx)
   local channel = b:get_i16()
   local size = b:get_i32()
 
-  data, err = sock:receive(size)
+  data, err = ctx:receive(size)
 
   if not data then
     return nil, err
@@ -1273,7 +1272,7 @@ function amqp_frame.consume_frame(ctx)
   end
 
   -- THE END --
-  local ok0,err0 = sock:receive(1)
+  local ok0,err0 = ctx:receive(1)
   if not ok0 then
     return nil,err0
   end
@@ -1442,13 +1441,14 @@ local function encode_heartbeat_frame(frame)
   return encode_frame(c.frame.HEARTBEAT_FRAME,frame.channel,nil)
 end
 
-local mt = { __index = amqp_frame }
+-- local mt = { __index = amqp_frame }
 
 --
 -- new a frame
 --
 
 function amqp_frame.new(typ,channel)
+  local mt = { __index = self }
   return setmetatable({ typ = typ, channel = channel }, mt)
 end
 
@@ -1487,8 +1487,7 @@ end
 --
 
 function amqp_frame.wire_protocol_header(ctx)
-  local sock = ctx.sock
-  local bytes, err = sock:send("AMQP\0\0\9\1")
+  local bytes, err = ctx:send("AMQP\0\0\9\1")
   if not bytes then
     return nil, err
   end
@@ -1498,8 +1497,7 @@ end
 function amqp_frame.wire_heartbeat(ctx)
   local frame = amqp_frame.new(c.frame.HEARTBEAT_FRAME,c.DEFAULT_CHANNEL)
   local msg = frame:encode()
-  local sock = ctx.sock
-  local bytes, err = sock:send(msg)
+  local bytes, err = ctx:send(msg)
   if not bytes then
     return nil,"[heartbeat]" .. err
   end
@@ -1513,10 +1511,8 @@ function amqp_frame.wire_header_frame(ctx,body_size,properties)
   frame.weight = 0
   frame.size = body_size
   frame.properties = properties
-
   local msg = frame:encode()
-  local sock = ctx.sock
-  local bytes, err = sock:send(msg)
+  local bytes, err = ctx:send(msg)
   if not bytes then
     return nil,"[wire_header_frame]" .. err
   end
@@ -1529,8 +1525,7 @@ function amqp_frame.wire_body_frame(ctx,payload)
   frame.class_id = c.class.BASIC
   frame.body = payload
   local msg = frame:encode()
-  local sock = ctx.sock
-  local bytes, err = sock:send(msg)
+  local bytes, err = ctx:send(msg)
   if not bytes then
     return nil,"[wire_body_frame]" .. err
   end
@@ -1542,9 +1537,14 @@ local function is_channel_close_received(frame)
   return frame ~= nil and frame.class_id == c.class.CHANNEL and frame.method_id == c.method.channel.CLOSE
 end
 
+local function is_channel_open_received(frame)
+  return frame ~= nil and frame.class_id == c.class.CHANNEL and frame.method_id == c.method.channel.OPEN_OK
+end
+
 local function is_connection_close_received(frame)
   return frame ~= nil and frame.class_id == c.class.CONNECTION and frame.method_id == c.method.connection.CLOSE
 end
+
 
 local function ongoing(ctx,frame)
   ctx.ongoing = ctx.ongoing or {}
@@ -1556,8 +1556,7 @@ function amqp_frame.wire_method_frame(ctx,frame)
   local f
 
   local msg = frame:encode()
-  local sock = ctx.sock
-  local bytes,err = sock:send(msg)
+  local bytes,err = ctx:send(msg)
 
   if not bytes then
     return nil,"[wire_method_frame]" .. err
