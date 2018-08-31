@@ -39,7 +39,7 @@ local inspect = require('inspect')
 
 local ctx = amqp:new({role = 'consumer',
                       exchange = '',
-                      queue = 'rpc_queue',
+                      queue = 'test',
                       routing_key = '',
                       ssl = false,
                       user = 'guest',
