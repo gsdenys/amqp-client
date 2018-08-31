@@ -1103,10 +1103,8 @@ local methods_ = {
 -- decoder
 --
 
-local function method_frame(ctx,channel,size)
+local function method_frame(data,err,channel)
    local frame = { channel = channel }
-   local sock = ctx.sock
-   local data, err = sock:receive(size)
    if not data then
       return nil,err
    end
@@ -1135,14 +1133,12 @@ local function method_frame(ctx,channel,size)
    return frame
 end
 
-local function header_frame(ctx,channel,size)
+local function header_frame(data,err,channel)
    local f = {
       channel = channel,
       properties = {}
    }
 
-   local sock = ctx.sock
-   local data,err = sock:receive(size)
    if not data then
       return nil,err
    end
@@ -1216,10 +1212,8 @@ local function header_frame(ctx,channel,size)
    return f
 end
 
-local function body_frame(ctx,channel,size)
+local function body_frame(data,err,channel)
    local frame = { channel = channel }
-   local sock = ctx.sock
-   local data,err = sock:receive(size)
    if not data then
       return nil, err
    end
@@ -1263,14 +1257,15 @@ function frame.consume_frame(ctx)
    local typ = b:get_i8()
    local channel = b:get_i16()
    local size = b:get_i32()
+   data, err = sock:receive(size)
    if typ == c.frame.METHOD_FRAME then
-      ok,fe,err = pcall(method_frame,ctx,channel,size)
+      ok,fe,err = pcall(method_frame,data,err,channel)
    elseif typ == c.frame.HEADER_FRAME then
-      ok,fe,err = pcall(header_frame,ctx,channel,size)
+      ok,fe,err = pcall(header_frame,data,err,channel)
    elseif typ == c.frame.BODY_FRAME then
-      ok,fe,err = pcall(body_frame,ctx,channel,size)
+      ok,fe,err = pcall(body_frame,data,err,channel)
    elseif typ == c.frame.HEARTBEAT_FRAME then
-      ok,fe,err = pcall(heartbeat_frame,ctx,channel,size)
+      ok,fe,err = pcall(heartbeat_frame,data,err,channel)
    else
       ok = nil
       err = "invalid frame type"
