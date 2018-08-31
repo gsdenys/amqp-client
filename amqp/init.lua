@@ -7,6 +7,7 @@ local c = require ('amqp.consts')
 local frame = require ('amqp.frame')
 local logger = require ('amqp.logger')
 local bit = require('bit')
+local inspect = require('inspect')
 
 local band = bit.band
 local bor = bit.bor
@@ -18,17 +19,36 @@ local gmatch = string.gmatch
 local min = math.min
 
 local socket
+local tcp
+
+use_cqueues = false
 
 -- let ngx.socket take precedence to lua socket
-
-if _G.ngx and _G.ngx.socket then
+if use_cqueues == true then
+  socket = require('cqueues')
+  -- tcp = socket.tcp
+elseif _G.ngx and _G.ngx.socket then
   socket = _G.ngx.socket
+  tcp = socket.tcp
 else
   socket = require("socket")
+  print('hello')
+  tcp = socket.tcp
 end
-local tcp = socket.tcp
 
 local amqp = {}
+
+if use_cqueues == true then
+
+  function amqp:send(str) return self.sock:xwrite(str, "nf") end
+  function amqp:receive(int) return self.sock:xread(int) end
+
+else
+
+  function amqp:send(str) return self.sock:send(str) end
+  function amqp:receive(int) return self.sock:receive(int) end
+
+end
 
 -- getopt(key, table, table, ..., value)
 -- return the key's value from the first table that has it, or VALUE if none do
@@ -65,7 +85,6 @@ function amqp:new(opts)
   local mt = { __index = self }
   mandatory_options(opts)
   local sock, err = tcp()
-
   if not sock then
     return nil, err
   end
@@ -83,6 +102,7 @@ function amqp:new(opts)
     mechanism = c.MECHANISM_PLAIN
   }
   setmetatable(ctx,mt)
+  print(inspect(ctx))
   return ctx
 end
 
@@ -114,16 +134,6 @@ local function sslhandshake(ctx)
   return ok, msg
 end
 
-
-use_cqueues = false
-
-if use_cqueues then
-  function amqp:send(str) return self.sock:xwrite(str, "nf") end
-  function amqp:receive(int) return self.socks:xread(int) end
-else
-  function amqp:send(str) return self.sock:send(str) end
-  function amqp:receive(size) return self.socks:receive(size) end
-end
 
 
 -- connect to the AMQP server (broker)
@@ -351,6 +361,7 @@ function amqp:setup()
   sock:settimeout(self.opts.read_timeout or 30000)
 
   res, err = frame.wire_protocol_header(self)
+
   if not res then
     logger.error("[amqp:setup] wire_protocol_header failed: ", err)
     return nil, err
