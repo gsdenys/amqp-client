@@ -1567,7 +1567,7 @@ function amqp_frame.wire_method_frame(ctx,frame)
 
   if frame.method ~= nil and not frame.method.no_wait then
 
-    f, err = frame.consume_frame(ctx)
+    f, err = amqp_frame.consume_frame(ctx)
 
     if f then
       debug("[wire_method_frame] channel: ",f.channel)
