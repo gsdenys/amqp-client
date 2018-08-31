@@ -1441,14 +1441,13 @@ local function encode_heartbeat_frame(frame)
   return encode_frame(c.frame.HEARTBEAT_FRAME,frame.channel,nil)
 end
 
--- local mt = { __index = amqp_frame }
+local mt = { __index = amqp_frame }
 
 --
 -- new a frame
 --
 
 function amqp_frame.new(typ,channel)
-  local mt = { __index = self }
   return setmetatable({ typ = typ, channel = channel }, mt)
 end
 
@@ -1535,10 +1534,6 @@ end
 
 local function is_channel_close_received(frame)
   return frame ~= nil and frame.class_id == c.class.CHANNEL and frame.method_id == c.method.channel.CLOSE
-end
-
-local function is_channel_open_received(frame)
-  return frame ~= nil and frame.class_id == c.class.CHANNEL and frame.method_id == c.method.channel.OPEN_OK
 end
 
 local function is_connection_close_received(frame)

@@ -38,15 +38,11 @@ end
 local amqp = {}
 
 if _G.use_cqueues == true then
-
-  function amqp:send(str) sock = self.sock return sock:xwrite(str, "nf") end
-  function amqp:receive(int) sock = self.sock return sock:xread(int) end
-
+  function amqp:send(str) return self.sock:xwrite(str, "nf") end
+  function amqp:receive(int) return self.sock:xread(int) end
 else
-
-  function amqp:send(str) sock = self.sock return sock:send(str) end
-  function amqp:receive(int) sock = self.sock return sock:receive(int) end
-
+  function amqp:send(str) return self.sock:send(str) end
+  function amqp:receive(int) return self.sock:receive(int) end
 end
 
 -- getopt(key, table, table, ..., value)
