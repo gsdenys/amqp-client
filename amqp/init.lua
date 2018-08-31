@@ -34,11 +34,11 @@ local amqp = {}
 -- return the key's value from the first table that has it, or VALUE if none do
 local  function _getopt(k,t,...)
   if select('#',...)==0 then
-   return t
+    return t
   elseif t[k]~=nil then
-   return t[k]
+    return t[k]
   else
-   return _getopt(k,...)
+    return _getopt(k,...)
   end
 end
 
@@ -69,19 +69,18 @@ function amqp:new(opts)
     return nil, err
   end
 
-  local ctx = { sock = sock,
-          opts = opts,
-          connection_state = c.state.CLOSED,
-          channel_state = c.state.CLOSED,
-
-          major = c.PROTOCOL_VERSION_MAJOR,
-          minor = c.PROTOCOL_VERSION_MINOR,
-          revision = c.PROTOCOL_VERSION_REVISION,
-
-          frame_max = c.DEFAULT_FRAME_SIZE,
-          channel_max = c.DEFAULT_MAX_CHANNELS,
-          mechanism = c.MECHANISM_PLAIN
-         }
+  local ctx = { 
+    sock = sock,
+    opts = opts,
+    connection_state = c.state.CLOSED,
+    channel_state = c.state.CLOSED,
+    major = c.PROTOCOL_VERSION_MAJOR,
+    minor = c.PROTOCOL_VERSION_MINOR,
+    revision = c.PROTOCOL_VERSION_REVISION,
+    frame_max = c.DEFAULT_FRAME_SIZE,
+    channel_max = c.DEFAULT_MAX_CHANNELS,
+    mechanism = c.MECHANISM_PLAIN
+  }
   setmetatable(ctx,mt)
   return ctx
 end
@@ -168,8 +167,8 @@ function amqp:connection_start_ok()
   local user = self.opts.user or "guest"
   local password = self.opts.password or "guest"
   local f = frame.new_method_frame(c.DEFAULT_CHANNEL,
-                        c.class.CONNECTION,
-                        c.method.connection.START_OK)
+  c.class.CONNECTION,
+  c.method.connection.START_OK)
   f.method = {
     properties = {
       product = c.PRODUCT,
@@ -190,8 +189,8 @@ end
 
 function amqp:connection_tune_ok()
   local f = frame.new_method_frame(c.DEFAULT_CHANNEL,
-                        c.class.CONNECTION,
-                        c.method.connection.TUNE_OK)
+  c.class.CONNECTION,
+  c.method.connection.TUNE_OK)
 
   f.method = {
     channel_max = self.channel_max or c.DEFAULT_MAX_CHANNELS,
@@ -211,8 +210,8 @@ end
 
 function amqp:connection_open()
   local f = frame.new_method_frame(c.DEFAULT_CHANNEL,
-                        c.class.CONNECTION,
-                        c.method.connection.OPEN)
+  c.class.CONNECTION,
+  c.method.connection.OPEN)
   f.method = {
     virtual_host = self.opts.virtual_host or "/"
   }
@@ -233,8 +232,8 @@ end
 
 function amqp:connection_close(reason)
   local f = frame.new_method_frame(c.DEFAULT_CHANNEL,
-                        c.class.CONNECTION,
-                        c.method.connection.CLOSE)
+  c.class.CONNECTION,
+  c.method.connection.CLOSE)
   f.method = sanitize_close_reason(self, reason)
   return frame.wire_method_frame(self, f)
 end
@@ -242,8 +241,8 @@ end
 
 function amqp:connection_close_ok()
   local f = frame.new_method_frame(self.channel or 1,
-                        c.class.CONNECTION,
-                        c.method.connection.CLOSE_OK)
+  c.class.CONNECTION,
+  c.method.connection.CLOSE_OK)
   return frame.wire_method_frame(self, f)
 end
 
@@ -253,8 +252,8 @@ end
 
 function amqp:channel_open()
   local f = frame.new_method_frame(self.opts.channel or 1,
-                        c.class.CHANNEL,
-                        c.method.channel.OPEN)
+  c.class.CHANNEL,
+  c.method.channel.OPEN)
   local msg = f:encode()
   local sock = self.sock
   local bytes,err = sock:send(msg)
@@ -452,17 +451,17 @@ function amqp:prepare_to_consume()
   end
 
   if self.opts.exchange ~= '' then
-   res, err = amqp.queue_bind(self)
-   if not res then
-    logger.error("[prepare_to_consume] queue_bind failed: ", err)
-    return nil, err
-   end
+    res, err = amqp.queue_bind(self)
+    if not res then
+      logger.error("[prepare_to_consume] queue_bind failed: ", err)
+      return nil, err
+    end
   end
 
   res, err = amqp.basic_consume(self)
   if not res then
-   logger.error("[prepare_to_consume] basic_consume failed: ", err)
-   return nil, err
+    logger.error("[prepare_to_consume] basic_consume failed: ", err)
+    return nil, err
   end
 
   return true
@@ -486,7 +485,7 @@ local function timedout(ctx, timeouts)
 end
 
 function amqp:timedout(timeouts)
-   return timedout(self, timeouts)
+  return timedout(self, timeouts)
 end
 
 local function exiting()
@@ -499,8 +498,8 @@ end
 
 function amqp:basic_ack(ok, delivery_tag)
   local f = frame.new_method_frame(self.channel or 1,
-                        c.class.BASIC,
-                        ok and c.method.basic.ACK or c.method.basic.NACK)
+  c.class.BASIC,
+  ok and c.method.basic.ACK or c.method.basic.NACK)
 
   f.method = {
     delivery_tag = delivery_tag,
@@ -523,9 +522,9 @@ function amqp:consume_loop(callback)
   local status
 
   while true do
---
+    --
     ::continue::
---
+    --
     f, err0 = frame.consume_frame(self)
     if not f then -- if start
       if exiting() then
@@ -600,7 +599,7 @@ function amqp:consume_loop(callback)
     elseif f.type == c.frame.HEADER_FRAME then
       f_header = f
       logger.dbg(format("[header] class_id: %d weight: %d, body_size: %d",
-                  f.class_id, f.weight, f.body_size))
+      f.class_id, f.weight, f.body_size))
       logger.dbg("[frame.properties]",f.properties)
     elseif f.type == c.frame.BODY_FRAME then
       status = true
@@ -645,14 +644,14 @@ function amqp:consume()
 
   ok, err = self:setup()
   if not ok then
-   self:teardown()
-   return nil, err
+    self:teardown()
+    return nil, err
   end
 
   ok, err = self:prepare_to_consume()
   if not ok then
-   self:teardown()
-   return nil, err
+    self:teardown()
+    return nil, err
   end
 
   return self:consume_loop(self.opts.callback)
@@ -701,8 +700,8 @@ function amqp:queue_declare(opts)
   end
 
   local f = frame.new_method_frame(self.channel or 1,
-                        c.class.QUEUE,
-                        c.method.queue.DECLARE)
+  c.class.QUEUE,
+  c.method.queue.DECLARE)
   f.method = {
     queue = opts.queue or self.opts.queue,
     passive = _getopt('passive', opts, self.opts, false),
@@ -722,8 +721,8 @@ function amqp:queue_bind(opts)
   end
 
   local f = frame.new_method_frame(self.channel or 1,
-                        c.class.QUEUE,
-                        c.method.queue.BIND)
+  c.class.QUEUE,
+  c.method.queue.BIND)
 
   f.method = {
     queue = opts.queue or self.opts.queue,
@@ -743,8 +742,8 @@ function amqp:queue_unbind(opts)
   end
 
   local f = frame.new_method_frame(self.channel or 1,
-                        c.class.QUEUE,
-                        c.method.queue.UNBIND)
+  c.class.QUEUE,
+  c.method.queue.UNBIND)
 
   f.method = {
     queue = opts.queue or self.opts.queue,
@@ -764,8 +763,8 @@ function amqp:queue_delete(opts)
   end
 
   local f = frame.new_method_frame(self.channel or 1,
-                        c.class.QUEUE,
-                        c.method.queue.DELETE)
+  c.class.QUEUE,
+  c.method.queue.DELETE)
 
   f.method = {
     queue = opts.queue or self.opts.queue,
@@ -784,8 +783,8 @@ function amqp:exchange_declare(opts)
   opts = opts or {}
 
   local f = frame.new_method_frame(self.channel or 1,
-                        c.class.EXCHANGE,
-                        c.method.exchange.DECLARE)
+  c.class.EXCHANGE,
+  c.method.exchange.DECLARE)
 
   f.method = {
     exchange = opts.exchange or self.opts.exchange,
@@ -814,8 +813,8 @@ function amqp:exchange_bind(opts)
   end
 
   local f = frame.new_method_frame(self.channel or 1,
-                        c.class.EXCHANGE,
-                        c.method.exchange.BIND)
+  c.class.EXCHANGE,
+  c.method.exchange.BIND)
 
   f.method = {
     destination = opts.destination,
@@ -841,8 +840,8 @@ function amqp:exchange_unbind(opts)
   end
 
   local f = frame.new_method_frame(self.channel or 1,
-                        c.class.EXCHANGE,
-                        c.method.exchange.UNBIND)
+  c.class.EXCHANGE,
+  c.method.exchange.UNBIND)
 
   f.method = {
     destination = opts.destination,
@@ -858,8 +857,8 @@ function amqp:exchange_delete(opts)
   opts = opts or {}
 
   local f = frame.new_method_frame(self.channel or 1,
-                        c.class.EXCHANGE,
-                        c.method.exchange.DELETE)
+  c.class.EXCHANGE,
+  c.method.exchange.DELETE)
 
   f.method = {
     exchange = opts.exchange or self.opts.exchange,
@@ -881,8 +880,8 @@ function amqp:basic_consume(opts)
   end
 
   local f = frame.new_method_frame(self.channel or 1,
-                        c.class.BASIC,
-                        c.method.basic.CONSUME)
+  c.class.BASIC,
+  c.method.basic.CONSUME)
 
   f.method = {
     queue = opts.queue or self.opts.queue,
@@ -899,8 +898,8 @@ function amqp:basic_publish(opts)
   opts = opts or {}
 
   local f = frame.new_method_frame(self.channel or 1,
-                        c.class.BASIC,
-                        c.method.basic.PUBLISH)
+  c.class.BASIC,
+  c.method.basic.PUBLISH)
   f.method = {
     exchange = opts.exchange or self.opts.exchange,
     routing_key = _getopt('routing_key',opts, self.opts, ""),
