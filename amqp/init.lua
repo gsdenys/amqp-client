@@ -69,7 +69,7 @@ function amqp:new(opts)
     return nil, err
   end
 
-  local ctx = { 
+  local ctx = {
     sock = sock,
     opts = opts,
     connection_state = c.state.CLOSED,
