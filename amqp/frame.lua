@@ -1103,12 +1103,8 @@ local methods_ = {
 -- decoder
 --
 
-local function method_frame(data,err,channel)
+local function method_frame(data,channel)
    local frame = { channel = channel }
-   if not data then
-      return nil,err
-   end
-
    local b = buffer.new(data)
    if is_debug_enabled() then
       debug("[method_frame]",b:hex_dump())
@@ -1133,16 +1129,8 @@ local function method_frame(data,err,channel)
    return frame
 end
 
-local function header_frame(data,err,channel)
-   local f = {
-      channel = channel,
-      properties = {}
-   }
-
-   if not data then
-      return nil,err
-   end
-
+local function header_frame(data,channel)
+   local f = { channel = channel, properties = {} }
    local b = buffer.new(data)
    if is_debug_enabled() then
       debug("[header_frame]",b:hex_dump())
@@ -1212,13 +1200,9 @@ local function header_frame(data,err,channel)
    return f
 end
 
-local function body_frame(data,err,channel)
+local function body_frame(data,channel)
    local frame = { channel = channel }
-   if not data then
-      return nil, err
-   end
    local b = buffer.new(data)
-
    if is_debug_enabled() then
       debug("[body_frame]",b:hex_dump())
    end
@@ -1258,14 +1242,17 @@ function frame.consume_frame(ctx)
    local channel = b:get_i16()
    local size = b:get_i32()
    data, err = sock:receive(size)
+   if not data then
+      return nil, err
+   end
    if typ == c.frame.METHOD_FRAME then
-      ok,fe,err = pcall(method_frame,data,err,channel)
+      ok,fe,err = pcall(method_frame,data,channel)
    elseif typ == c.frame.HEADER_FRAME then
-      ok,fe,err = pcall(header_frame,data,err,channel)
+      ok,fe,err = pcall(header_frame,data,channel)
    elseif typ == c.frame.BODY_FRAME then
-      ok,fe,err = pcall(body_frame,data,err,channel)
+      ok,fe,err = pcall(body_frame,data,channel)
    elseif typ == c.frame.HEARTBEAT_FRAME then
-      ok,fe,err = pcall(heartbeat_frame,data,err,channel)
+      ok,fe,err = pcall(heartbeat_frame,data,channel)
    else
       ok = nil
       err = "invalid frame type"
