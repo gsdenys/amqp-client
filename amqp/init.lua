@@ -22,7 +22,7 @@ local socket
 -- let ngx.socket take precedence to lua socket
 
 if _G.ngx and _G.ngx.socket then
-  socket = ngx.socket
+  socket = _G.ngx.socket
 else
   socket = require("socket")
 end
@@ -153,7 +153,8 @@ end
 
 
 local function platform()
-  if jit and jit.os and jit.arch then
+  local has_jit, jit = pcall(require, "jit")
+  if has_jit then
     return jit.os .. "_" .. jit.arch
   end
   return "posix"

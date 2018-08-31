@@ -1227,7 +1227,7 @@ end
 local match = string.match
 
 if _G.ngx and _G.ngx.match then
-   match = ngx.match
+   match = _G.ngx.match
 end
 
 function frame.consume_frame(ctx)
