@@ -29,10 +29,12 @@
 
 local amqp = require('amqp')
 local inspect = require('inspect')
+local argparse = require('argparse')
+--local cqueues = require('cqueues')
 
 ---------------------------------------------------------------------------------
 -- Main
-
+local parser = argparse()
 --
 -- Instantiates context
 --
@@ -89,29 +91,49 @@ ctx.opts.callback = function(f)
   end
 end
 
---
--- Connect to AMQP server (broker)
---
+local function rpc_main(args)
+  local host = '127.0.0.1'
+  local port = 5672
+  --
+  -- Connect to AMQP server (broker)
+  --
 
-local ok, err
-ok = ctx:connect('127.0.0.1',5672)
+  if ctx.opts.user and args.user then ctx.opts.user = args.user end
+  if ctx.opts.password and args.password then ctx.opts.password = args.password end
+  if ctx.opts.ssl and args.ssl then ctx.opts.ssl = args.ssl end
+  if args.host then host = args.host end
+  if args.port then port = args.port end
 
-if not ok then
-  error('failed to connect')
+  local ok, err
+  ok = ctx:connect(host, port)
+  if not ok then
+    error('failed to connect')
+  end
+
+  --
+  -- Enter consume loop
+  --
+
+  -- Callback will be called only on reception of BODY_FRAME.
+  -- No need for setup() or prepare_to_consume() calls because were are using
+  -- consume() and not consume_loop(callback), also note that consume() the
+  -- callback function is passed thru the ctx context and not as an argument
+  -- of the method like in in consume_loop()
+
+  ok, err = ctx:consume()
+
+  if not ok then
+    error('consume failed: '..err)
+  end
 end
 
---
--- Enter consume loop
---
+-- Argument handling ---------------------------------------------------------
+parser:option('-H --host','rabbitmq hostname', '127.0.0.1')
+parser:option('-P --port','rabbitmq port', 5672)
+parser:option('-u --user','rabbitmq username', 'guest')
+parser:option('-p --password','rabbitmq password', 'guest')
+parser:flag('-s --ssl','enable ssl')
 
--- Callback will be called only on reception of BODY_FRAME.
--- No need for setup() or prepare_to_consume() calls because were are using
--- consume() and not consume_loop(callback), also note that consume() the
--- callback function is passed thru the ctx context and not as an argument
--- of the method like in in consume_loop()
+local args = parser:parse()
 
-ok, err = ctx:consume()
-
-if not ok then
-  error('consume failed: '..err)
-end
+rpc_main(args)
