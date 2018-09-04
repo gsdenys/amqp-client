@@ -21,15 +21,15 @@ local min = math.min
 local socket
 local tcp
 
-_G.use_cqueues = false
+local use_cqueues = false
 
 -- let ngx.socket take precedence to lua socket
-if _G.use_cqueues == true then
-  socket = require('cqueues')
-  tcp = socket -- most likely incorrect or not enough
-elseif _G.ngx and _G.ngx.socket then
+if _G.ngx and _G.ngx.socket then
   socket = _G.ngx.socket
   tcp = socket.tcp
+elseif use_cqueues == true then
+  socket = require('cqueues')
+  tcp = socket
 else
   socket = require("socket")
   tcp = socket.tcp
@@ -37,7 +37,7 @@ end
 
 local amqp = {}
 
-if _G.use_cqueues == true then
+if use_cqueues == true then
   function amqp:send(str) return self.sock:xwrite(str, "nf") end
   function amqp:receive(int) return self.sock:xread(int) end
 else
@@ -77,9 +77,13 @@ end
 -- initialize the context
 --
 function amqp:new(opts)
+
   local mt = { __index = self }
+
   mandatory_options(opts)
+
   local sock, err = tcp()
+
   if not sock then
     return nil, err
   end
@@ -96,22 +100,40 @@ function amqp:new(opts)
     channel_max = c.DEFAULT_MAX_CHANNELS,
     mechanism = c.MECHANISM_PLAIN
   }
+
   setmetatable(ctx,mt)
-  print(inspect(ctx))
+
   return ctx
 end
 
 local function sslhandshake(ctx)
+
   local sock = ctx.sock
+
+	local session
+	local err
+
   if _G.ngx then
-    local session, err = sock:sslhandshake()
+    session, err = sock:sslhandshake()
     if not session then
-      logger.error("[amqp:connect] SSL handshake failed: ", err)
+      logger.error("[amqp:sslhandshake] SSL handshake failed: ", err)
     end
-    return session, err
+
+    return session, err -- return 
+
+	elseif use_cqueues == true then
+		session, err, errno = sock:starttls()
+		if not session then
+			logger.error("[amqp:sslhandshake] SSL handshake failed: ", err)
+		end
+
+		return session, err -- return 
   end
 
-  local ssl = require("ssl")
+  -- if none of the above then continue down
+
+  local ssl = require("ssl") -- require library only for socket
+
   local params = {
     mode = "client",
     protocol = "sslv23",
@@ -120,13 +142,17 @@ local function sslhandshake(ctx)
   }
 
   ctx.sock = ssl.wrap(sock, params)
+
   local ok, msg = ctx.sock:dohandshake()
+
   if not ok then
-    logger.error("[amqp.connect] SSL handshake failed: ", msg)
+    logger.error("[amqp:sslhandshake] SSL handshake failed: ", msg)
   else
-    logger.dbg("[amqp:connect] SSL handshake")
+    logger.dbg("[amqp:sslhandshake] SSL handshake")
   end
-  return ok, msg
+
+  return ok, msg -- return
+
 end
 
 
