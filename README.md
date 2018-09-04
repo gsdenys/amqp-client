@@ -1,6 +1,6 @@
 # LUA-AMQP
 
-Lua Client for AMQP 0.9.1
+Lua Client for AMQP 0.9.1, while this has been tested only with RabbitMQ it should work with any other AMQP 0.9.1 broker.
 
 This library is fork of : 
 
