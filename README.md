@@ -1,6 +1,6 @@
 # LUA-AMQP
 
-Lua Client for AMQP 0.9.1
+Lua Client for AMQP 0.9.1, while this has been tested only with RabbitMQ it should work with any other AMQP 0.9.1 broker.
 
 This library is fork of : 
 
@@ -8,7 +8,7 @@ https://github.com/mengz0/amqp
 
 https://github.com/ZigzagAK/amqp
 
-This library at the moment supports ngx.socket and socket, it can be used with luajit and does not have to be used only in OpenResty. Work is being performed to make it cqueues compatible.
+This library at the moment supports ngx.socket and socket, it can be used with luajit and does not have to be used only in OpenResty. it is also cqueues compatible, though the SSL stuff is still in WIP.
 
 ## Additional features
 
