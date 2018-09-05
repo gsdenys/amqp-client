@@ -175,12 +175,12 @@ function amqp:connect(...)
 
 
   if use_cqueues == true then
-    local ok, err = sock.connect(...)
-    if not ok then
+    local s, err = sock.connect(...)
+    if not s then
       logger.error("[amqp:connect] failed: ", err)
       return nil, err
     else
-      self.sock = ok
+      self.sock = s
       self.sock:settimeout(self.opts.connect_timeout or 5000) -- configurable but 5 seconds timeout
     end
   else
