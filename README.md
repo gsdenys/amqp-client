@@ -34,4 +34,5 @@ Please look at the example directory instead.
 ```
 luarocks install inspect
 luarocks install lua-resty-uuid
+luarocks install argparse
 ```
