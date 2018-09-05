@@ -96,7 +96,7 @@ local function rpc_client(args)
 
   if ctx.opts.user and args.user then ctx.opts.user = args.user end
   if ctx.opts.password and args.password then ctx.opts.password = args.password end
-  if ctx.opts.ssl and args.ssl then ctx.opts.ssl = args.ssl end
+  if args.ssl then ctx.opts.ssl = args.ssl end
   if args.host then host = args.host end
   if args.port then port = args.port end
 
