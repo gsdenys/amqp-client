@@ -28,7 +28,7 @@ if _G.ngx and _G.ngx.socket then
   socket = _G.ngx.socket
   tcp = socket.tcp
 elseif use_cqueues == true then
-  socket = require('cqueues')
+  socket = require('cqueues.socket')
   tcp = socket
 else
   socket = require("socket")
@@ -38,7 +38,7 @@ end
 local amqp = {}
 
 if use_cqueues == true then
-  function amqp:send(str) return self.sock:xwrite(str, "nf") end
+  function amqp:send(str) return self.sock:xwrite(str, 'bnf') end
   function amqp:receive(int) return self.sock:xread(int) end
 else
   function amqp:send(str) return self.sock:send(str) end
@@ -77,12 +77,16 @@ end
 -- initialize the context
 --
 function amqp:new(opts)
-
+  local sock, err
   local mt = { __index = self }
 
   mandatory_options(opts)
 
-  local sock, err = tcp()
+  if use_cqueues == true then
+    sock = tcp
+  else
+    sock, err = tcp()
+  end
 
   if not sock then
     return nil, err
@@ -110,8 +114,9 @@ local function sslhandshake(ctx)
 
   local sock = ctx.sock
 
-	local session
-	local err
+  local session
+  local err
+  local errno
 
   if _G.ngx then
     session, err = sock:sslhandshake()
@@ -119,15 +124,15 @@ local function sslhandshake(ctx)
       logger.error("[amqp:sslhandshake] SSL handshake failed: ", err)
     end
 
-    return session, err -- return 
+    return session, err -- return
 
-	elseif use_cqueues == true then
-		session, err, errno = sock:starttls()
-		if not session then
-			logger.error("[amqp:sslhandshake] SSL handshake failed: ", err)
-		end
+  elseif use_cqueues == true then
+    session, err, errno = sock:starttls()
+    if not session then
+      logger.error("[amqp:sslhandshake] SSL handshake failed: ", err)
+    end
 
-		return session, err -- return 
+    return session, err -- return
   end
 
   -- if none of the above then continue down
@@ -168,12 +173,23 @@ function amqp:connect(...)
 
   self._subscribed = false
 
-  sock:settimeout(self.opts.connect_timeout or 5000) -- configurable but 5 seconds timeout
 
-  local ok, err = sock:connect(...)
-  if not ok then
-    logger.error("[amqp:connect] failed: ", err)
-    return nil, err
+  if use_cqueues == true then
+    local ok, err = sock.connect(...)
+    if not ok then
+      logger.error("[amqp:connect] failed: ", err)
+      return nil, err
+    else
+      self.sock = ok
+      self.sock:settimeout(self.opts.connect_timeout or 5000) -- configurable but 5 seconds timeout
+    end
+  else
+    sock:settimeout(self.opts.connect_timeout or 5000) -- configurable but 5 seconds timeout
+    local ok, err = sock:connect(...)
+    if not ok then
+      logger.error("[amqp:connect] failed: ", err)
+      return nil, err
+    end
   end
 
   if self.opts.ssl then
