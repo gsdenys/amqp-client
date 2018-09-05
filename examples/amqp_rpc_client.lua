@@ -177,5 +177,4 @@ parser:flag('-s --ssl','enable ssl')
 
 local args = parser:parse()
 
-print(inspect(args))
 rpc_client(args)
