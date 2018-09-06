@@ -8,7 +8,7 @@ https://github.com/mengz0/amqp
 
 https://github.com/ZigzagAK/amqp
 
-This library at the moment supports ngx.socket and socket, it can be used with luajit and does not have to be used only in OpenResty. it is also cqueues compatible, with wokring SSL.
+This library at the moment supports ngx.socket and socket, it can be used with luajit and does not have to be used only in OpenResty. it is also cqueues compatible, with working SSL.
 
 ## Additional features
 
