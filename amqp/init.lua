@@ -23,6 +23,8 @@ local tcp
 
 local use_cqueues = true
 
+amqp = {}
+
 -- let ngx.socket take precedence to lua socket
 
 if _G.ngx and _G.ngx.socket then
