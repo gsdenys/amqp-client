@@ -8,20 +8,23 @@ https://github.com/mengz0/amqp
 
 https://github.com/ZigzagAK/amqp
 
-This library at the moment supports ngx.socket and socket, it can be used with luajit and does not have to be used only in OpenResty. it is also cqueues compatible, with working SSL.
+This library at the moment supports ngx.socket and socket, it can be used with luajit and does not have to be used only in OpenResty.
 
 ## Additional features
 
-This fork contains the code that is missing in the original library.
+This fork contains the code that is missing in the original library and some additions:
 
-* Decode all AMQP packets
-* Several other fixes
-* Examples on how to use this library.
-* Removed not working bitopers.lua, also not needed for my use case.
+- [x] Support for CQUEUES, NGX.SOCKET, SOCKET
+- [x] Decode all AMQP packets
+- [x] Support SSL
+- [x] Socket re-use
+- [x] Examples on how to use this library.
+- [x] Removed not working bitopers.lua, also not needed for my use case.
+- [x] Automatic installation of most dependencies.
 
 ## Requirements
 
-1. LuaJIT 2.1
+1. LuaJIT >= 2.1 
 2. busted 2.0 (Testing framework)
 3. luabitop (if you are using lua 5.1)
 
