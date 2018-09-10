@@ -23,7 +23,10 @@ local tcp
 
 local use_cqueues = true
 
+amqp = {}
+
 -- let ngx.socket take precedence to lua socket
+
 if _G.ngx and _G.ngx.socket then
   socket = _G.ngx.socket
   tcp = socket.tcp
@@ -35,7 +38,6 @@ else
   tcp = socket.tcp
 end
 
-local amqp = {}
 
 if use_cqueues == true then
   function amqp:send(str) return self.sock:xwrite(str, 'bnf') end
