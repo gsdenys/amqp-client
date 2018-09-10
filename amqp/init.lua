@@ -7,7 +7,7 @@ local c = require ('amqp.consts')
 local frame = require ('amqp.frame')
 local logger = require ('amqp.logger')
 local bit = require('bit')
-local inspect = require('inspect')
+local inspect = require('inspect') -- luacheck: ignore 211
 
 local band = bit.band
 local bor = bit.bor
@@ -21,7 +21,7 @@ local min = math.min
 local socket
 local tcp
 
-local use_cqueues = false
+local use_cqueues = true
 
 -- let ngx.socket take precedence to lua socket
 if _G.ngx and _G.ngx.socket then
@@ -94,6 +94,7 @@ function amqp:new(opts)
 
   local ctx = {
     sock = sock,
+    ssl_ctx = opts.ssl_ctx or nil,
     opts = opts,
     connection_state = c.state.CLOSED,
     channel_state = c.state.CLOSED,
@@ -113,6 +114,7 @@ end
 local function sslhandshake(ctx)
 
   local sock = ctx.sock
+  local ssl_ctx = ctx.ssl_ctx
 
   local session
   local err
@@ -127,7 +129,11 @@ local function sslhandshake(ctx)
     return session, err -- return
 
   elseif use_cqueues == true then
-    session, err, errno = sock:starttls()
+    if ssl_ctx then
+      session, err, errno = sock:starttls(ssl_ctx)
+    else
+      session, err, errno = sock:starttls()
+    end
     if not session then
       logger.error("[amqp:sslhandshake] SSL handshake failed: ", err)
     end
