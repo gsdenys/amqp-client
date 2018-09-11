@@ -7,7 +7,6 @@ local c = require ('amqp.consts')
 local frame = require ('amqp.frame')
 local logger = require ('amqp.logger')
 local bit = require('bit')
-local inspect = require('inspect') -- luacheck: ignore 211
 
 local band = bit.band
 local bor = bit.bor
