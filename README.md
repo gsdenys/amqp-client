@@ -17,7 +17,6 @@ This fork contains the code that is missing in the original library and some add
 - [x] Support for CQUEUES, NGX.SOCKET, SOCKET
 - [x] Decode all AMQP packets
 - [x] Support SSL
-- [x] Socket re-use
 - [x] Examples on how to use this library.
 - [x] Removed not working bitopers.lua, also not needed for my use case.
 - [x] Automatic installation of most dependencies.
