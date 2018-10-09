@@ -22,7 +22,7 @@ local tcp
 
 local use_cqueues = true
 
-amqp = {}
+local amqp = {}
 
 -- let ngx.socket take precedence to lua socket
 
@@ -39,8 +39,38 @@ end
 
 
 if use_cqueues == true then
-  function amqp:send(str) return self.sock:xwrite(str, 'bnf') end
-  function amqp:receive(int) return self.sock:xread(int) end
+  function amqp:send(str)
+    if self.sock == nil then
+      return false, 'sock is nil'
+    else
+      local ok, err = pcall(self.sock.xwrite, self.sock, str, 'bnf')
+      if not ok then
+        if err then
+          return nil, err
+        else
+          return nil, 'self.sock.xwrite failed'
+        end
+      else
+        return err
+      end
+    end
+  end
+  function amqp:receive(int)
+    if self.sock == nil then
+      return false, 'sock is nil'
+    else
+      local ok, err = pcall(self.sock.xread, self.sock, int)
+      if not ok then
+        if err then
+          return nil, err
+        else
+          return nil, 'self.sock.xread failed'
+        end
+      else
+        return err
+      end
+    end
+  end
 else
   function amqp:send(str) return self.sock:send(str) end
   function amqp:receive(int) return self.sock:receive(int) end
@@ -179,7 +209,6 @@ function amqp:connect(...)
   end
 
   self._subscribed = false
-
 
   if use_cqueues == true then
     local s, err = sock.connect(...)
@@ -687,7 +716,7 @@ function amqp:consume_loop(callback)
 
   self:teardown()
   -- return not err or err ~= "exiting", err
-  return nil, err
+  return nil, err or err0
 end
 
 function amqp:consume()

@@ -1,5 +1,5 @@
 package = "amqp"
-version = "1.0-3"
+version = "1.0-4"
 source = {
    url = "https://github.com/4mig4/lua-amqp.git",
    tag = "",
