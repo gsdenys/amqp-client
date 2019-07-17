@@ -1,8 +1,9 @@
 local amqp = require "amqp"
 local logger = require "amqp.logger"
-local uuid = require "uuid"
+local uuid = require('resty.uuid')
 
 local host = "127.0.0.1"
+--local host = "192.168.25.13"
 local port = 5672
 
 logger.set_level(7)
@@ -27,7 +28,7 @@ local ctx = amqp:new(
     
 local ok1, err1 = ctx:connect(host, port)
 local ok2, err2 = ctx:setup()
-local ok3, err3 = ctx:publish("Hello world!",{},{correlation_id = uuid()})
+local ok3, err3 = ctx:publish("Hello world!",{},{correlation_id = uuid.generate()})
 
 ctx:teardown()
 ctx:close()
