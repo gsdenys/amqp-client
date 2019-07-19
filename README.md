@@ -1,41 +1,89 @@
 # LUA-AMQP
 
-Lua Client for AMQP 0.9.1, while this has been tested only with RabbitMQ it should work with any other AMQP 0.9.1 broker.
+Lua Client for AMQP 0.9.1. This library is already tested with RabbitMQ and should work with any other AMQP 0.9.1 broker.
 
-This library is fork of : 
+It is a fork of : 
 
-https://github.com/mengz0/amqp
-
-https://github.com/ZigzagAK/amqp
+* https://github.com/mengz0/amqp
+* https://github.com/ZigzagAK/amqp
+* https://github.com/4mig4/lua-amqp
 
 This library can be used with LuaJIT and does not have to be used only in OpenResty.
 
-## Additional features
+## Usage
 
-This fork contains the code that is missing in the original library and some additions:
+As this library is already published at [Luarocks](https://luarocks.org), you can use this throught follow command
 
-- [x] Support for CQUEUES, NGX.SOCKET, SOCKET
-- [x] Decode all AMQP packets
-- [x] Support SSL
-- [x] Examples on how to use this library.
-- [x] Removed not working bitopers.lua, also not needed for my use case.
-- [x] Automatic installation of most dependencies.
+    luarocks install amqp-client
 
-## Requirements
+then, follow this [Wiki Documentation](https://github.com/gsdenys/amqp-client/wiki) to know how to use this library.
+
+## Develop
+
+To facilitate to create the lua development environment, was created a [Lua Vagrant Image](https://github.com/gsdenys/vagrant-lua). Use it to gain time.
+
+Case you already have your environment done, just clone this repository and start working. Other else, follow the steps bellow ([Vagrant](https://www.vagrantup.com) need to be installed) :
+
+```sh
+#create lua environment over vagrant
+git clone https://github.com/gsdenys/vagrant-lua.git
+cd vagrant-lua
+vagrant up #it takes a lot of time 
+vagran ssh
+
+#install RabbitMQ
+wget https://gist.github.com/gsdenys/882d1aeb4f754c35121dcfa05ff1c6aa/raw/47f44dfd43ae7a06b64b2011d0406951fd25bbd2/install-rabbitmq-ubuntu-18.sh -O install.sh
+sh install.sh
+
+#Clone this repository
+git clone https://github.com/gsdenys/amqp-client.git
+cd amqp-client
+```
+Now, you`re ready to start contributing with the project.
+
+## Building
+
+This library have some requirements shown below. If you're using the [Lua Vagrant Image](https://github.com/gsdenys/vagrant-lua) just take care about the busted lib, the othes is already done.
 
 1. LuaJIT >= 2.1 
 2. busted 2.0 (Testing framework)
 3. luabitop (if you are using lua 5.1)
 
-### Examples
+to install busted lib >= 2.1 execute the following command:
 
-Please look at the example directory instead.
-
-* lua inspect is needed by the example, though you are of course free not to use it and remove it.
-
+```sh
+luarocks install busted
 ```
+
+After requirements solved, you can run the test using the following command:
+
+```sh
+busted
+```
+
+once solved, inside the main folder, execute follow command:
+
+```sh
+luarocks make
+```
+
+The output should be like this:
+
+    amqp-client 1.0.0-1 is now installed in /usr/local (license: Apache 2.0)
+
+## Examples
+
+The examples needs some dependencies that can be solved throught the follow commands:
+
+```sh
 luarocks install inspect
 luarocks install lua-resty-uuid
 luarocks install cqueues
 luarocks install argparse
 ```
+
+Beyond dependences, the examples depends on build. Other way to execute example less build the library is import this library from luarocks. You can do this executing this command.
+
+ ```sh
+ luarocks install amqp-client
+ ```   
