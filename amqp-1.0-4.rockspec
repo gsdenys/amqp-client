@@ -13,12 +13,13 @@ description = {
    license = "Apache 2.0"
 }
 dependencies = {
-   "lua >= 5.1",
+   "lua >= 5.1", cqueues >= 20171014.53-0
 }
 build = {
    type = "builtin",
    modules = {
      ['amqp'] = "amqp/init.lua",
+     ['amqp.client'] = "amqp/client.lua"
      ['amqp.buffer'] = "amqp/buffer.lua",
      ['amqp.consts'] = "amqp/consts.lua",
      ['amqp.frame'] = "amqp/frame.lua",

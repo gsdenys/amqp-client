@@ -132,7 +132,7 @@ local function rpc_client(args)
   --
 
   local correlation_id = uuid.generate()
-  local properties = {
+  local properties = { 
                       reply_to = 'amq.rabbitmq.reply-to',
                       content_type = 'application/json',
                       content_encoding = 'utf-8',

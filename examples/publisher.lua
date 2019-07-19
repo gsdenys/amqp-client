@@ -3,7 +3,6 @@ local logger = require "amqp.logger"
 local uuid = require('resty.uuid')
 
 local host = "127.0.0.1"
---local host = "192.168.25.13"
 local port = 5672
 
 logger.set_level(7)
@@ -15,8 +14,8 @@ local ctx = amqp:new(
         --queue = '',
         routing_key = 'test',
         ssl = false,
-        user = 'guest',
-        password = 'guest',
+        user = 'admin',
+        password = 'admin',
         no_ack = false,
         durable = true,
         auto_delete = true,

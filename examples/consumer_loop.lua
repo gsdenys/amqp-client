@@ -25,10 +25,19 @@ if not ok then
     error('could not connect'..err)
 end
 
--- Define a callback for consume
-ctx.opts.callback = function(f)
-    print(inspect(f))
+ok, err = ctx:setup() -- because of this we need to use consume_loop()
+if not ok then
+    error('could not setup: '..err)
 end
 
-ok, err = ctx:consume()
+ok, err = ctx:prepare_to_consume() -- this has to be right after setup()
+if not ok then
+    error('could not prepare to consume: '..err)
+end
+
+local callback = function(f)
+    print('---f---',inspect(f))
+end
+
+ok, err = ctx:consume_loop(callback)
 print(ok, err)
