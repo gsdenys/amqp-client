@@ -29,7 +29,7 @@ Case you already have your environment done, just clone this repository and star
 git clone https://github.com/gsdenys/vagrant-lua.git
 cd vagrant-lua
 vagrant up #it takes a lot of time 
-vagran ssh
+vagrant ssh
 
 #install RabbitMQ
 wget https://bit.ly/2Ycybe8 -O install.sh
