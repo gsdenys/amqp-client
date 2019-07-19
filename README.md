@@ -32,7 +32,7 @@ vagrant up #it takes a lot of time
 vagran ssh
 
 #install RabbitMQ
-wget https://gist.github.com/gsdenys/882d1aeb4f754c35121dcfa05ff1c6aa/raw/47f44dfd43ae7a06b64b2011d0406951fd25bbd2/install-rabbitmq-ubuntu-18.sh -O install.sh
+wget https://bit.ly/2Ycybe8 -O install.sh
 sh install.sh
 
 #Clone this repository
