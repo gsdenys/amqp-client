@@ -36,6 +36,7 @@ wget https://bit.ly/2Ycybe8 -O install.sh
 sh install.sh
 
 #Clone this repository
+cd /lua
 git clone https://github.com/gsdenys/amqp-client.git
 cd amqp-client
 ```
