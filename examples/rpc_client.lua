@@ -32,8 +32,6 @@ local ok3, err3 = producer:publish("Hello world!",{},{correlation_id = uid})
 -- ############
 
 
-
-
 local consumer = amqp:new({role = 'consumer',
                       exchange = '',
                       queue = uid..'-queue',
