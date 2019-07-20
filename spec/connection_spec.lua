@@ -15,15 +15,13 @@ describe("[amqp]", function()
 				user = 'admin',
 				password = 'adminerr'
 			})
-			      
+			
 			local ok, err = ctx:connect("127.0.0.1",5672)
 			assert.truthy(ok)
 			local ok, err = ctx:setup()
 			-- expects access denied
 			assert.is_equal(403,err)
 			assert.falsy(ok)
-			ctx:teardown()
-			ctx:close()
 		end)
 	end)	    
 end)

@@ -1,6 +1,7 @@
 --
 -- Copyright (C) 2016 Meng Zhang @ Yottaa,Inc
 -- Copyright (C) 2018 4mig4
+-- Copyright (C) 2019 gsdenys
 --
 
 local c = require ('amqp.consts')
@@ -26,15 +27,15 @@ local amqp = {}
 
 -- let ngx.socket take precedence to lua socket
 if _G.ngx and _G.ngx.socket then
-  logger.dbg("Unsing ngx socket.")
+  logger.dbg("[socket] Unsing ngx socket.")
   socket = _G.ngx.socket
   tcp = socket.tcp
 elseif use_cqueues == true then
-  logger.dbg("Unsing cqueues socket.")
+  logger.dbg("[socket] Unsing cqueues socket.")
   socket = require('cqueues.socket')
   tcp = socket
 else
-  logger.dbg("Unsing lua socket.")
+  logger.dbg("[socket] Unsing lua socket.")
   socket = require("socket")
   tcp = socket.tcp
 end
