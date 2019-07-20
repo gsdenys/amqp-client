@@ -1,8 +1,8 @@
 package = "amqp-client"
-version = "1.1.2-2"
+version = "1.1.2-3"
 source = {
    url = "https://github.com/gsdenys/amqp-client",
-   tag = "amqp, queue, cqueues, RPC, rabbitmq",
+   tag = "",
 }
 description = {
    summary = "Lua AMQP 0.9.1 client",
