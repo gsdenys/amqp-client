@@ -20,19 +20,21 @@ local min = math.min
 local socket
 local tcp
 
-local use_cqueues = true
+local use_cqueues, lfs = pcall(require,"cqueues")
 
 local amqp = {}
 
 -- let ngx.socket take precedence to lua socket
-
 if _G.ngx and _G.ngx.socket then
+  logger.dbg("Unsing ngx socket.")
   socket = _G.ngx.socket
   tcp = socket.tcp
 elseif use_cqueues == true then
+  logger.dbg("Unsing cqueues socket.")
   socket = require('cqueues.socket')
   tcp = socket
 else
+  logger.dbg("Unsing lua socket.")
   socket = require("socket")
   tcp = socket.tcp
 end

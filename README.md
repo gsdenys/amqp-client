@@ -28,6 +28,8 @@ Case you already have your environment done, just clone this repository and star
 #create lua environment over vagrant
 git clone https://github.com/gsdenys/vagrant-lua.git
 cd vagrant-lua
+git clone https://github.com/gsdenys/amqp-client.git
+
 vagrant up #it takes a lot of time 
 vagrant ssh
 
@@ -35,11 +37,10 @@ vagrant ssh
 wget https://bit.ly/2Ycybe8 -O install.sh
 sh install.sh
 
-#Clone this repository
-cd /lua
-git clone https://github.com/gsdenys/amqp-client.git
-cd amqp-client
+#go to amqp-client source code
+cd /lua/amqp-client
 ```
+
 Now, you`re ready to start contributing with the project.
 
 ## Building
@@ -54,6 +55,7 @@ to install busted lib >= 2.1 execute the following command:
 
 ```sh
 luarocks install busted
+luarocks install cqueues
 ```
 
 After requirements solved, you can run the test using the following command:
@@ -79,7 +81,6 @@ The examples needs some dependencies that can be solved throught the follow comm
 ```sh
 luarocks install inspect
 luarocks install lua-resty-uuid
-luarocks install cqueues
 luarocks install argparse
 ```
 
