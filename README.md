@@ -87,10 +87,16 @@ To install busted lib >= 2.1 execute the following command:
 luarocks install busted
 ```
 
-This library can use [cqueues](https://luarocks.org/modules/daurnimator/cqueues); once [cqueues](https://luarocks.org/modules/daurnimator/cqueues) is installed the library automatically starts to use it. to install [cqueues](https://luarocks.org/modules/daurnimator/cqueues) __(OPTIONAL)__ use this command.
+This library can use [cqueues](https://luarocks.org/modules/daurnimator/cqueues); once [cqueues](https://luarocks.org/modules/daurnimator/cqueues) is installed the library automatically starts to use it. to install [cqueues](https://luarocks.org/modules/daurnimator/cqueues) use this command.
 
 ```sh
 luarocks install cqueues
+```
+
+case you don't want to use cqueues you need to use the lua socket. Install it with this command:
+
+```sh
+luarocks install luasocket
 ```
 
 After requirements solved, you can run the unit tests with busted using the following command:
