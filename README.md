@@ -11,7 +11,7 @@ This library can be used with LuaJIT and does not have to be used only in OpenRe
 
 ## Usage
 
-As this library is already published at [Luarocks](https://luarocks.org), you can use this throught follow command
+As this library is already published at [Luarocks](https://luarocks.org), you can use this through following command:
 
 ```sh
 luarocks install amqp-client
@@ -21,20 +21,20 @@ then, follow this [Wiki Documentation](https://github.com/gsdenys/amqp-client/wi
 
 ## Develop
 
-To facilitate to create the lua development environment, was created a [Lua Vagrant Image](https://github.com/gsdenys/vagrant-lua). Use it to gain time.
+To facilitate to create the lua development environment, was created a [Lua Vagrant Image](https://github.com/gsdenys/lua-vagrant). Use it to gain time.
 
 Case you already have your environment done, just clone this repository and start working. Other else, execute the following steps ([Vagrant](https://www.vagrantup.com) need to be installed)
 
 ### Prepare the Environmen
 
-First of all you need to clone the vagrant lua enviromnet executing this command:
+First of all you need to clone the [lua-vagrant](https://github.com/gsdenys/lua-vagrant) environment executing this command:
 
 ```sh
 git clone https://github.com/gsdenys/vagrant-lua.git
 cd vagrant-lua
 ```
 
-As we'll install the [RabbitMQ](https://www.rabbitmq.com), is very interesting expose the ports to be accessed by the host, this way we can easilly access the adm enviromnent. So, to to this, you need to locate the code below at the __Vagrantfile__. 
+As we'll install the [RabbitMQ](https://www.rabbitmq.com), is very interesting expose the ports to be accessed through the host, this way we can easilly access the administrator enviromnent in your browser. So, to to this, you need to locate the code below at the __Vagrantfile__
 
 ```sh
 ###
@@ -44,7 +44,7 @@ As we'll install the [RabbitMQ](https://www.rabbitmq.com), is very interesting e
   
 # config.vm.network "forwarded_port", guest: 8080, host: 8080
 ```
-then insert the the next 2 lines after that:
+and insert the the next 2 lines after that:
 
 ```sh
 config.vm.network "forwarded_port", guest: 15672, host: 8080
@@ -66,7 +66,7 @@ Now, you already are inside the [lua-vagrant](https://github.com/gsdenys/lua-vag
 wget https://bit.ly/2Ycybe8 -O install.sh
 sh install.sh
 ```
-Your environment is done now. the amqp-client project is in the _/lua/amqp-client_ folder. Go to the project and start to use it.
+Your environment is ready now. the amqp-client project is in the _/lua/amqp-client_ directory. Go to the project and start to use it.
 
 ```sh
 #go to amqp-client source code
@@ -99,7 +99,7 @@ After requirements solved, you can run the unit tests with busted using the foll
 busted
 ```
 
-Eow you are ready to build de library executing following command:
+Wow you are ready to build the library executing following command::
 
 ```sh
 luarocks make
@@ -111,7 +111,7 @@ the output should be like this:
 
 ### Examples
 
-The examples needs some dependencies that can be solved throught the following commands:
+The examples needs some dependencies that can be solved through the following commands:
 
 ```sh
 luarocks install inspect
@@ -119,7 +119,7 @@ luarocks install lua-resty-uuid
 luarocks install argparse
 ```
 
-Beyond dependences, the examples depends on build. Other way to execute the examples less build the library is import this library from luarocks. You can do this executing this command.
+Beyond dependences, the examples depends on build of this library. Other way to execute the examples less building the library is import this library from luarocks. You can do this executing this command.
 
  ```sh
  luarocks install amqp-client
