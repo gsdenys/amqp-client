@@ -1,9 +1,12 @@
+-- Import the AMQP Client Library
 local amqp = require "amqp"
 local inspect = require('inspect')
 
+-- Define the connection URL and Port 
 local host = "127.0.0.1"
 local port = 5672
 
+-- Connect to AMQP server
 local ctx = amqp:new({
     role = 'consumer',
     exchange = '',
@@ -18,17 +21,12 @@ local ctx = amqp:new({
     exclusive = false,
     properties = {}
 })
+local ok, err = ctx:connect(host, port)
 
-local ok, err
-ok , err = ctx:connect(host, port)
-if not ok then
-    error('could not connect'..err)
-end
-
--- Define a callback for consume
+-- Define a callback for consumer
 ctx.opts.callback = function(f)
     print(inspect(f))
 end
 
+-- Start consume loop
 ok, err = ctx:consume()
-print(ok, err)
