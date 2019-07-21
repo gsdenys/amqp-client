@@ -1,8 +1,7 @@
 package = "amqp-client"
-version = "1.1.2-3"
+version = "1.2.0-1"
 source = {
-   url = "https://github.com/gsdenys/amqp-client",
-   tag = "",
+   url = "git://github.com/gsdenys/amqp-client.git"
 }
 description = {
    summary = "Lua AMQP 0.9.1 client",
@@ -13,6 +12,7 @@ description = {
       Developed by: Meng Zhang, Aleksey Konovkin, 4mig4 and Denys Santos.
    ]],
    homepage = "https://github.com/gsdenys/amqp-client",
+   maintainer = "Denys G. Santos <gsdenys@gmail.com>",
    license = "Apache 2.0"
 }
 dependencies = {
