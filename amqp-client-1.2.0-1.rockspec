@@ -1,7 +1,8 @@
 package = "amqp-client"
-version = "1.2.0-1"
+version = "1.2.1-1"
 source = {
-   url = "git://github.com/gsdenys/amqp-client.git"
+   url = "git://github.com/gsdenys/amqp-client.git",
+   tag = "v1.2.1-1"
 }
 description = {
    summary = "Lua AMQP 0.9.1 client",
