@@ -178,7 +178,7 @@ local function sslhandshake(ctx)
 
   -- if none of the above then continue down
 
-  local ssl = assert(require("ssl")) -- require library only for socket
+  local ssl = require("ssl") -- require library only for socket
 
   local default_params = {
     mode = "client",
