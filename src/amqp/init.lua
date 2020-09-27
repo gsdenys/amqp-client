@@ -32,7 +32,7 @@ if _G.ngx and _G.ngx.socket then
   socket = _G.ngx.socket
   tcp = socket.tcp
 else
---]] 
+--]]
 if use_cqueues == true then
   logger.dbg("[socket] Unsing cqueues socket.")
   socket = require('cqueues.socket')
@@ -149,7 +149,6 @@ function amqp:new(opts)
 end
 
 local function sslhandshake(ctx)
-
   local sock = ctx.sock
   local ssl_ctx = ctx.ssl_ctx
 
@@ -164,7 +163,6 @@ local function sslhandshake(ctx)
     end
 
     return session, err -- return
-
   elseif use_cqueues == true then
     if ssl_ctx then
       session, err, errno = sock:starttls(ssl_ctx)
@@ -182,14 +180,22 @@ local function sslhandshake(ctx)
 
   local ssl = require("ssl") -- require library only for socket
 
-  local params = {
+  local default_params = {
     mode = "client",
-    protocol = "sslv23",
+    protocol = "any",
     verify = "none",
     options = {"all", "no_sslv2","no_sslv3"}
   }
 
-  ctx.sock = ssl.wrap(sock, params)
+  local wsock, err = ssl.wrap(sock, ssl_ctx or default_params)
+
+  if not wsock then
+    logger.error("[amqp:sslhandshake] Socket wrapping failed: ", err)
+    return wsock, err -- return
+  else
+    logger.dbg("[amqp:sslhandshake] Wrapped socket")
+    ctx.sock = wsock
+  end
 
   local ok, msg = ctx.sock:dohandshake()
 
@@ -200,7 +206,6 @@ local function sslhandshake(ctx)
   end
 
   return ok, msg -- return
-
 end
 
 
@@ -491,7 +496,6 @@ end
 -- close channel and connection if needed.
 --
 function amqp:teardown(reason)
-
   local ok
   local err
 
@@ -524,7 +528,6 @@ end
 -- initialize the consumer
 --
 function amqp:prepare_to_consume()
-
   local res
   local err
 
@@ -599,7 +602,6 @@ function amqp:basic_ack(ok, delivery_tag)
 end
 
 function amqp:consume_loop(callback)
-
   local ok
   local err
   local err0
@@ -726,7 +728,6 @@ function amqp:consume_loop(callback)
 end
 
 function amqp:consume()
-
   local ok
   local err
 
@@ -1031,18 +1032,18 @@ function amqp:basic_publish(opts)
 end
 
 function amqp:basic_get(opts)
- opts = opts or {}
- if not opts.queue and not self.opts.queue then
+  opts = opts or {}
+  if not opts.queue and not self.opts.queue then
     return nil, "[basic_get] queue is not specified."
- end
- local f = frame.new_method_frame(self.channel or 1,
+  end
+  local f = frame.new_method_frame(self.channel or 1,
                                   c.class.BASIC,
                                   c.method.basic.GET)
- f.method = {
+  f.method = {
     queue = opts.queue or self.opts.queue,
     no_ack = _getopt('no_ack', opts, self.opts, true)
- }
- return frame.wire_method_frame(self,f)
+  }
+  return frame.wire_method_frame(self,f)
 end
 
 return amqp
