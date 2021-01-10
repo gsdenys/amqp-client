@@ -7,6 +7,7 @@
 local c = require ('amqp.consts')
 local frame = require ('amqp.frame')
 local logger = require ('amqp.logger')
+local socket = require ('amqp.socket')
 local bit = require('bit')
 
 local band = bit.band
@@ -21,7 +22,7 @@ local min = math.min
 local socket
 local tcp
 
-local use_cqueues, lfs = pcall(require,"cqueues")
+
 
 local amqp = {}
 
@@ -33,15 +34,16 @@ if _G.ngx and _G.ngx.socket then
   tcp = socket.tcp
 else
 --]]
-if use_cqueues == true then
-  logger.dbg("[socket] Unsing cqueues socket.")
-  socket = require('cqueues.socket')
-  tcp = socket
-else
-  logger.dbg("[socket] Unsing lua socket.")
-  socket = require("socket")
-  tcp = socket.tcp
-end
+
+-- if use_cqueues == true then
+--   logger.dbg("[socket] Unsing cqueues socket.")
+--   socket = require('cqueues.socket')
+--   tcp = socket
+-- else
+--   logger.dbg("[socket] Unsing lua socket.")
+--   socket = require("socket")
+--   tcp = socket.tcp
+-- end
 
 
 if use_cqueues == true then
@@ -119,11 +121,13 @@ function amqp:new(opts)
 
   mandatory_options(opts)
 
-  if use_cqueues == true then
-    sock = tcp
-  else
-    sock, err = tcp()
-  end
+
+
+  -- if use_cqueues == true then
+  --   sock = tcp
+  -- else
+  --   sock, err = tcp()
+  -- end
 
   if not sock then
     return nil, err
