@@ -59,7 +59,7 @@ end
 
 -- verify if there is nginx socket loaded
 -- @return boolean true case there is, and false if not
-local function hasNginxSocket()
+function selector:hasNginxSocket()
     if _G.ngx and _G.ngx.socket then
         return true
     end
@@ -69,7 +69,7 @@ end
 
 -- Verify if the cqueues socket is installed
 -- @return boolean true case there is, and false if not
-local function hasCqueuesSocket()
+function selector:hasCqueuesSocket()
     local cqueues, lfs = pcall(require,"cqueues")
 
     if cqueues == true then
@@ -82,7 +82,7 @@ end
 -- Get the NGINX socket and tcp
 -- @return first socket
 -- @return second tcp
-local function GetFromNginx()
+function selector:GetFromNginx()
     local sckt = _G.ngx.socket
     local tcp = sckt.tcp
 
@@ -92,27 +92,21 @@ end
 -- Get the CQUEUES socket and tcp
 -- @return first socket
 -- @return second tcp
-local function GetFromCqueues()
-    local sckt = require('cqueues.socket')
-    local tcp = sckt
+function selector:GetFromCqueues()
+    local skt = require('cqueues.socket')
+    local tcp = skt
 
-    return sckt, tcp
+    return skt, tcp
 end
 
 -- Get the Lua socket and tcp
 -- @return first socket
 -- @return second tcp
-local function GetFromLua()
+function selector:GetFromLua()
     local sckt = require("socket")
     local tcp = sckt.tcp
 
     return sckt, tcp
-end
-
-if _TEST then
-    selector._GetFromLua = GetFromLua
-    selector._GetFromCqueues = GetFromCqueues
-    selector._GetFromNginx = GetFromNginx
 end
 
 return selector
