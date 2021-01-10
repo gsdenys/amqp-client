@@ -27,6 +27,6 @@ build = {
      ['amqp.consts'] = "src/amqp/consts.lua",
      ['amqp.frame'] = "src/amqp/frame.lua",
      ['amqp.logger'] = "src/amqp/logger.lua",
-     ['amqp.socket'] = "src/amqp/socket.lua"
+     ['amqp.selector'] = "src/amqp/selector.lua"
    }
 }

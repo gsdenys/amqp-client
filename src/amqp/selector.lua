@@ -20,40 +20,40 @@
 --      2. CQUEUES Socket
 --      3. LUA Socket
 -- @module socket
-local socket = {}
+local selector = {}
+_TEST = false
 
-
--- Create a new socket generic module
-function socket:new()
+--- Create a new socket generic module
+function selector:load()
     local sckt, tcp, sock
 
     if self.hasNginxSocket() then
-        sckt, tcp = self.getNginxChannel()
+        sckt, tcp = self.GetFromNginx()
         sock = tcp()
     elseif self.hasCqueuesSocket() then
-        sckt, tcp = self.getCqueuesChannel()
+        sckt, tcp = self.GetFromCqueues()
         sock = tcp
     else
-        sckt, tcp = self.getLuaChannel()
+        sckt, tcp = self.GetFromLua()
         sock = tcp()
     end
 end
 
--- Get the prioritized socket
--- @return the loaded socket
-function socket:getSocket()
+--- Get the prioritized socket
+--- @return socket
+function selector:getSocket()
     return self.sckt
 end
 
--- Get the sock
--- @return sock
-function socket:getSock()
+--- Get the sock
+--- @return sock
+function selector:getSock()
     return self.sock
 end
 
 -- Get the TCP
 -- @return tcp
-function socket:getTcp()
+function selector:getTcp()
     return self.tcp
 end
 
@@ -82,7 +82,7 @@ end
 -- Get the NGINX socket and tcp
 -- @return first socket
 -- @return second tcp
-local function getNginxChannel()
+local function GetFromNginx()
     local sckt = _G.ngx.socket
     local tcp = sckt.tcp
 
@@ -92,7 +92,7 @@ end
 -- Get the CQUEUES socket and tcp
 -- @return first socket
 -- @return second tcp
-local function getCqueuesChannel()
+local function GetFromCqueues()
     local sckt = require('cqueues.socket')
     local tcp = sckt
 
@@ -102,11 +102,17 @@ end
 -- Get the Lua socket and tcp
 -- @return first socket
 -- @return second tcp
-local function getLuaChannel()
+local function GetFromLua()
     local sckt = require("socket")
     local tcp = sckt.tcp
 
-    return socket, tcp
+    return sckt, tcp
 end
 
-return socket
+if _TEST then
+    selector._GetFromLua = GetFromLua
+    selector._GetFromCqueues = GetFromCqueues
+    selector._GetFromNginx = GetFromNginx
+end
+
+return selector
