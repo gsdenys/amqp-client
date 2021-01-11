@@ -4,12 +4,7 @@ local selector
 
 describe("Socket Selector", function ()
     setup(function()
-        _G._TEST = true
         selector = require("amqp.selector")
-    end)
-
-    teardown(function()
-        _G._TEST = nil
     end)
 
     it("Selector should exists", function ()
@@ -17,7 +12,6 @@ describe("Socket Selector", function ()
     end)
 
     describe("Get from LUA", function ()
-
         it("should return LUA Socket", function ()
             local skt, tcp = selector.GetFromLua()
             local s = skt.tcp
