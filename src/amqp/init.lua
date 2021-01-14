@@ -7,7 +7,7 @@
 local c = require ('amqp.consts')
 local frame = require ('amqp.frame')
 local logger = require ('amqp.logger')
-local socket = require ('amqp.socket')
+local selector = require ('amqp.selector')
 local bit = require('bit')
 
 local band = bit.band
@@ -44,6 +44,10 @@ else
 --   socket = require("socket")
 --   tcp = socket.tcp
 -- end
+
+local function _sendThroughCqueues()
+  
+end
 
 
 if use_cqueues == true then

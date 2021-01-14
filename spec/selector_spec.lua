@@ -11,23 +11,29 @@ describe("Socket Selector", function ()
         assert.is_not_equals(selector, nil)
     end)
 
-    describe("Get from LUA", function ()
+    describe("Get Socket", function ()
         it("should return LUA Socket", function ()
             local skt, tcp = selector.GetFromLua()
             local s = skt.tcp
-
+    
             assert.is_not_nil(skt)
             assert.is_not_nil(tcp)
             assert.is.equal(tcp, s)
         end)
+    
+        it("should return CQUEUES Socket", function ()
+            local skt, tcp = selector.GetFromCqueues()
+            local s = skt
+    
+            assert.is_not_nil(skt)
+            assert.is_not_nil(tcp)
+            assert.is.equal(tcp, s)
+        end)
+
+        -- TODO: create GetFromNginx test
     end)
 
-    it("should return CQUEUES Socket", function ()
-        local skt, tcp = selector.GetFromCqueues()
-        local s = skt
-
-        assert.is_not_nil(skt)
-        assert.is_not_nil(tcp)
-        assert.is.equal(tcp, s)
+    describe("Is socket from each type", function ()
+        
     end)
 end)
