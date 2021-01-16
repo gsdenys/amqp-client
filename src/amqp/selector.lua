@@ -25,6 +25,10 @@
 --- @module socket
 local selector = {}
 
+selector.NGINX = "nginx"
+selector.CQUEUES = "cqueues"
+selector.LUA = "lua"
+
 -- Get the NGINX socket and tcp
 -- @return first socket
 -- @return second tcp
@@ -90,35 +94,33 @@ local function _selfSelect()
     end
 end
 
-
 --- Set the selector type.
---- @param type string (nginx | cqueues | lua)
-function selector:SetType(type)
-    if type == "nginx" then
-        selector.socket_definer = _getFromNginx
-    elseif type == "cqueues" then
-        selector.socket_definer = _getFromCqueues
-    elseif type == "lua" then
-        selector.socket_definer = _getFromLua
-    else
-        error("This function accepts just 'nginx | cqueues | lua'.")
+--- @param selector_type string (nginx | cqueues | lua)
+local function _getSelector(selector_type)
+    if selector_type == nil then
+        return _selfSelect
     end
-end
-
---- Create a new socket generic module
-function selector:load()
-
-    if self.socket_definer == nil then
-        self.socket_definer = _selfSelect
+    
+    if selector_type == selector.NGINX then
+        return _getFromNginx
     end
 
-    self.sckt, self.tcp, self.sock = self.socket_definer()
+    if selector_type == selector.CQUEUES then
+        return _getFromCqueues
+    end
+
+    if selector_type == selector.LUA then
+        return _getFromLua
+    end
+
+    error("This function accepts just 'selector.NGINX | selector.CQUEUES | selector.LUA'.")
 end
+
 
 --- Get the prioritized socket
---- @return socket
-function selector:getSocket()
-    return self.sckt
+--- @return table
+function selector:GetSocket()
+    return self.socket
 end
 
 --- Get the sock
@@ -133,6 +135,25 @@ function selector:getTcp()
     return self.tcp
 end
 
+--- Create a new Selector module
+--- @param selector_type string (nginx | cqueues | lua)
+--- @return table
+function selector:new(selector_type)
+    local socket_selector = _getSelector(selector_type)
+    local socket, tcp, sock = socket_selector()
 
+    print(socket_selector)
+    print(socket)
+    -- print(socket._VERSION)
+
+    local state = {
+        socket_definer = socket_selector,
+        socket = socket,
+        tcp = tcp,
+        sock = sock
+    }
+
+    return setmetatable(state, { __index = selector })
+end
 
 return selector
