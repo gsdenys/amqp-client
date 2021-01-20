@@ -20,6 +20,7 @@ local gmatch = string.gmatch
 local min = math.min
 
 local socket
+
 local tcp
 
 
@@ -45,9 +46,6 @@ else
 --   tcp = socket.tcp
 -- end
 
-local function _sendThroughCqueues()
-  
-end
 
 
 if use_cqueues == true then

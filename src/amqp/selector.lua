@@ -36,6 +36,8 @@ local function _getFromNginx()
     local sckt = _G.ngx.socket
     local tcp = sckt.tcp
     local sock = tcp()
+
+    print("nginx" .. sckt._VERSION)
     
     return sckt, tcp, sock
 end
@@ -46,7 +48,7 @@ end
 local function _getFromCqueues()
     local skt = require('cqueues.socket')
     local tcp = skt
-    
+
     return skt, tcp, tcp
 end
 
@@ -141,10 +143,6 @@ end
 function selector:new(selector_type)
     local socket_selector = _getSelector(selector_type)
     local socket, tcp, sock = socket_selector()
-
-    print(socket_selector)
-    print(socket)
-    -- print(socket._VERSION)
 
     local state = {
         socket_definer = socket_selector,
