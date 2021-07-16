@@ -1,13 +1,14 @@
 --
 -- Copyright (C) 2016 Meng Zhang @ Yottaa,Inc
--- Copyright (C) 2018 4mig4
---
-
+-- Copyright (C) 2018 @4mig4
+-- Copyright (C) 2021 @gsdenys
 --
 -- Constants definition
 --
 
 local amqp = {
+
+  DEFAULT_TIMEOUT           = 5000, -- 5s
 
   DEFAULT_CHANNEL           = 0,
   DEFAULT_FRAME_SIZE        = 131072,
@@ -165,8 +166,8 @@ local amqp = {
   },
 
   PRODUCT = "amqp-client",
-  VERSION  = "1.0.3",
-  COPYRIGHT = "Copyright (c) 2016,2017,2018,2019 Meng Zhang @Yottaa, @4mig4, @gsdenys",
+  VERSION  = "2.0.0",
+  COPYRIGHT = "Copyright (c) 2021 @Yottaa, @4mig4, @gsdenys",
   LOCALE = "en_US",
   MECHANISM_PLAIN = "PLAIN"
 }

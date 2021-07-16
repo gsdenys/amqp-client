@@ -21,7 +21,7 @@ local min = math.min
 local socket
 local tcp
 
-local use_cqueues, lfs = pcall(require,"cqueues")
+-- local use_cqueues, lfs = pcall(require,"cqueues")
 
 local amqp = {}
 
@@ -38,9 +38,9 @@ if use_cqueues == true then
   socket = require('cqueues.socket')
   tcp = socket
 else
-  logger.dbg("[socket] Unsing lua socket.")
-  socket = require("socket")
-  tcp = socket.tcp
+  -- logger.dbg("[socket] Unsing lua socket.")
+  -- socket = require("socket")
+  -- tcp = socket.tcp
 end
 
 
@@ -78,8 +78,8 @@ if use_cqueues == true then
     end
   end
 else
-  function amqp:send(str) return self.sock:send(str) end
-  function amqp:receive(int) return self.sock:receive(int) end
+  -- function amqp:send(str) return self.sock:send(str) end
+  -- function amqp:receive(int) return self.sock:receive(int) end
 end
 
 -- getopt(key, table, table, ..., value)
@@ -122,7 +122,7 @@ function amqp:new(opts)
   if use_cqueues == true then
     sock = tcp
   else
-    sock, err = tcp()
+    -- sock, err = tcp()
   end
 
   if not sock then
@@ -231,12 +231,12 @@ function amqp:connect(...)
       self.sock:settimeout(self.opts.connect_timeout or 5000) -- configurable but 5 seconds timeout
     end
   else
-    sock:settimeout(self.opts.connect_timeout or 5000) -- configurable but 5 seconds timeout
-    local ok, err = sock:connect(...)
-    if not ok then
-      logger.error("[amqp:connect] failed: ", err)
-      return nil, err
-    end
+    -- sock:settimeout(self.opts.connect_timeout or 5000) -- configurable but 5 seconds timeout
+    -- local ok, err = sock:connect(...)
+    -- if not ok then
+    --   logger.error("[amqp:connect] failed: ", err)
+    --   return nil, err
+    -- end
   end
 
   if self.opts.ssl then
@@ -248,13 +248,13 @@ end
 
 -- to close the socket
 --
-function amqp:close()
-  local sock = self.sock
-  if not sock then
-    return nil, "not initialized"
-  end
-  return sock:close()
-end
+-- function amqp:close()
+--   local sock = self.sock
+--   if not sock then
+--     return nil, "not initialized"
+--   end
+--   return sock:close()
+-- end
 
 
 local function platform()

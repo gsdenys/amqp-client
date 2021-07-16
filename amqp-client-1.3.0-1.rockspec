@@ -22,10 +22,16 @@ dependencies = {
 build = {
    type = "builtin",
    modules = {
-     ['amqp'] = "src/amqp/init.lua",
+   --   ['amqp'] = "src/amqp/init.lua",
      ['amqp.buffer'] = "src/amqp/buffer.lua",
      ['amqp.consts'] = "src/amqp/consts.lua",
      ['amqp.frame'] = "src/amqp/frame.lua",
-     ['amqp.logger'] = "src/amqp/logger.lua"
+   --   ['amqp.logger'] = "src/amqp/logger.lua",
+
+     ['amqp'] = 'src/amqp/amqp.lua'
+     ['amqp.context'] = "src/amqp/context.lua",
+     ['amqp.socket.lua'] = "src/amqp/socket/lua.lua",
+
+     ['amqp.log.simple'] = "src/amqp/log/simple.lua"
    }
 }
