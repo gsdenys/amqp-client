@@ -140,7 +140,7 @@ function amqp:new(opts)
     revision = c.PROTOCOL_VERSION_REVISION,
     frame_max = c.DEFAULT_FRAME_SIZE,
     channel_max = c.DEFAULT_MAX_CHANNELS,
-    mechanism = c.MECHANISM_PLAIN
+    mechanism = opts.mechanism or c.MECHANISM_PLAIN
   }
 
   setmetatable(ctx,mt)
