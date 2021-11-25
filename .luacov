@@ -1,6 +1,7 @@
 print_report = true
 statsfile = 'luacov.stats.out'
 reportfile = 'luacov.report.out'
+tick = true
 
 include = {
     "amqp",
