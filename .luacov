@@ -9,7 +9,9 @@ include = {
 
 exclude = {
     'spec/',
-    -- 'docs/',
+    'docs/',
+    '/ptable/',
+    'net',
     '/busted/',
     '/luassert/',
     '/pl/',
