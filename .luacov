@@ -1,7 +1,7 @@
 print_report = true
 statsfile = 'luacov.stats.out'
 reportfile = 'luacov.report.out'
-tick = true
+-- tick = true
 
 include = {
     "amqp",
@@ -16,5 +16,5 @@ exclude = {
     '/term/',
     '/say/',
     '/luarocks/',
-    '/mediator',
+    'mediator',
 }
