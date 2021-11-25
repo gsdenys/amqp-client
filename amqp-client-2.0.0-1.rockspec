@@ -40,7 +40,5 @@ build = {
       ['amqp.utils.assertion'] = "src/utils/assertion.lua",
       ['amqp.utils.messages'] = "src/utils/messages.lua",
       ['amqp.utils.level'] = "src/utils/level.lua",
-      ['amqp.utils.helper'] = "src/utils/helper.lua"
-
    }
 }

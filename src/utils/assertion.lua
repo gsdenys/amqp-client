@@ -8,6 +8,7 @@ local format = string.format
 local assertion = {}
 
 ---failOnAssert function that throws an exception each called time
+---
 ---@param msg string the error message
 ---@param fn string the function name
 local function failOnAssert(msg, fn)
@@ -19,7 +20,7 @@ end
 ---
 --- @param uri any the uri to be validate
 --- @param fn any the function name
-function assertion.whitespace(uri, fn)
+function assertion.whitespace(fn, uri)
     local WHITESPACE = " "
     if string.find(uri, WHITESPACE) then
         failOnAssert(messages.ERR_URI_WHITE_SPACE, fn)
@@ -43,6 +44,7 @@ function assertion.contains(t, dt, msg, fn)
 end
 
 ---True function that throws exception when <test> is false
+---
 ---@param fn string the function name
 ---@param msg string the error message
 ---@param test boolean the test

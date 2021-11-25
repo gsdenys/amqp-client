@@ -4,7 +4,7 @@ describe("[Assertion]", function()
     local function some_test(uri)
         local assertion = require "amqp.utils.assertion"
 
-        assertion.whitespace(uri, "test")
+        assertion.whitespace("test", uri)
     end
 
     describe("URI with white space in the beginning", function()
