@@ -1,21 +1,7 @@
 print_report = true
 statsfile = 'luacov.stats.out'
 reportfile = 'luacov.report.out'
--- reporter="sonar"
-tick = true
 
 include = {
-    "ptable",
+    "amqp",
 }
-
--- exclude = {
---     'spec/',
---     'docs/',
---     '/busted/',
---     '/luassert/',
---     '/pl/',
---     '/term/',
---     '/say/',
---     '/luarocks/',
---     'mediator.lua',
--- }
