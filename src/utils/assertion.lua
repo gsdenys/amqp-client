@@ -2,7 +2,6 @@ local level = require "amqp.utils.level"
 local messages = require "amqp.utils.messages"
 
 local format = string.format
-local type = type
 
 ---Table that contains all implementation type of assertion.
 ---Basically this table just contains functions

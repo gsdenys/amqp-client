@@ -5,7 +5,7 @@ local assertion = require "amqp.utils.assertion"
 local messages = require "amqp.utils.messages"
 local helper = require "amqp.utils.helper"
 
-local URI = {}
+-- local URI = {}
 
 local schemesPorts = table({amqp = 5672, amqps = 5671})
 
@@ -55,30 +55,8 @@ local function parse(uri)
     validate(builder, FUNCTION_NAME)
 
 	set_default_port(builder)
-    -- defaultPort, okScheme := schemePorts[u.Scheme]
 
-    -- if okScheme {
-    -- 	builder.Scheme = u.Scheme
-    -- } else {
-    -- 	return builder, errURIScheme
-    -- }
 
-    -- host := u.Hostname()
-    -- port := u.Port()
-
-    -- if host != "" {
-    -- 	builder.Host = host
-    -- }
-
-    -- if port != "" {
-    -- 	port32, err := strconv.ParseInt(port, 10, 32)
-    -- 	if err != nil {
-    -- 		return builder, err
-    -- 	}
-    -- 	builder.Port = int(port32)
-    -- } else {
-    -- 	builder.Port = defaultPort
-    -- }
 
     -- if u.User != nil {
     -- 	builder.Username = u.User.Username()
