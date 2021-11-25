@@ -1,5 +1,5 @@
 package = "amqp-client"
-version = "1.3.0-1"
+version = "2.0.0-1"
 source = {
    url = "git://github.com/gsdenys/amqp-client.git",
    branch = "v1.3.0-1"
@@ -17,21 +17,27 @@ description = {
    license = "Apache 2.0"
 }
 dependencies = {
-   "lua >= 5.1"
+   "lua >= 5.1",
+   "power-table >= 1.0.1-1",
+   "net-url >= 1.1-1"
 }
 build = {
    type = "builtin",
    modules = {
-   --   ['amqp'] = "src/amqp/init.lua",
-     ['amqp.buffer'] = "src/amqp/buffer.lua",
-     ['amqp.consts'] = "src/amqp/consts.lua",
-     ['amqp.frame'] = "src/amqp/frame.lua",
-   --   ['amqp.logger'] = "src/amqp/logger.lua",
+   --   ['amqp.buffer'] = "src/amqp/buffer.lua",
+   --   ['amqp.consts'] = "src/amqp/consts.lua",
+   --   ['amqp.frame'] = "src/amqp/frame.lua",
 
-     ['amqp'] = 'src/amqp/amqp.lua'
-     ['amqp.context'] = "src/amqp/context.lua",
-     ['amqp.socket.lua'] = "src/amqp/socket/lua.lua",
+   --   ['amqp'] = 'src/amqp/amqp.lua',
+   --   ['amqp.context'] = "src/amqp/context.lua",
+   --   ['amqp.socket.lua'] = "src/amqp/socket/lua.lua",
 
-     ['amqp.log.simple'] = "src/amqp/log/simple.lua"
+   --   ['amqp.log.simple'] = "src/amqp/log/simple.lua"
+
+      ['amqp.utils.assertion'] = "src/utils/assertion.lua",
+      ['amqp.utils.messages'] = "src/utils/messages.lua",
+      ['amqp.utils.level'] = "src/utils/level.lua",
+      ['amqp.utils.helper'] = "src/utils/helper.lua"
+      
    }
 }

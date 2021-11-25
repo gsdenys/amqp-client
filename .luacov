@@ -1,0 +1,21 @@
+print_report = true
+statsfile = 'luacov.stats.out'
+reportfile = 'luacov.report.out'
+-- reporter="sonar"
+tick = true
+
+include = {
+    "ptable",
+}
+
+-- exclude = {
+--     'spec/',
+--     'docs/',
+--     '/busted/',
+--     '/luassert/',
+--     '/pl/',
+--     '/term/',
+--     '/say/',
+--     '/luarocks/',
+--     'mediator.lua',
+-- }

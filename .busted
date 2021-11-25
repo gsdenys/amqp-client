@@ -1,0 +1,10 @@
+return {
+  default = {
+    coverage = true,
+    loaders = { 'lua' },
+    output = 'utfTerminal',
+    pattern = '_spec.lua',
+    ROOT = { 'spec/' },
+    verbose = true
+  }
+}

@@ -1,0 +1,74 @@
+name: luarocks
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  test:
+    name: "Unit Test"
+
+    strategy:
+      fail-fast: false
+      matrix:
+        luaVersion: ["5.1", "5.2", "5.3", "5.4", "luajit"]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install Lua
+        uses: leafo/gh-actions-lua@v8.0.0
+        with:
+          luaVersion: ${{ matrix.luaVersion }}
+                   
+      - name: Install LuaRocks
+        uses: leafo/gh-actions-luarocks@v4.0.0
+      
+      - name: Install this module
+        run: |
+          luarocks make
+
+      - name: Install dependencies
+        run: |
+          luarocks install busted
+          luarocks install luacov
+
+      - name: Run Unity Test
+        run: |
+          busted -o utfTerminal
+  
+  publish:
+    name: "Publish to Luarocks"
+    needs: test
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install Lua
+        uses: leafo/gh-actions-lua@v8.0.0
+        with:
+          luaVersion: "5.1"
+
+      - name: Install LuaRocks
+        uses: leafo/gh-actions-luarocks@v4.0.0
+
+      - name: Install dependencies
+        run: |
+          luarocks install lua-cjson
+
+      - name: Branch name
+        id: branch_name
+        run: |
+          echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
+
+      - name: Publish to luarocks
+        run: |
+          luarocks upload power-table-${{ steps.branch_name.outputs.SOURCE_TAG }}.rockspec --api-key=${{ secrets.LUAROCKS_TOKEN }}
