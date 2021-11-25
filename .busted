@@ -4,7 +4,7 @@ return {
     loaders = { 'lua' },
     output = 'utfTerminal',
     pattern = '_spec.lua',
-    ROOT = { 'spec/' },
+    ROOT = { 'spec/', 'src/' },
     verbose = true
   }
 }
