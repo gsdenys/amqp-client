@@ -1,5 +1,11 @@
 # AMQP Client #
 
+![build status](https://github.com/gsdenys/lua-power-table/workflows/build/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/gsdenys/amqp-client/badge.svg?branch=v2.0.0)](https://coveralls.io/github/gsdenys/amqp-client?branch=v2.0.0)
+![License](https://img.shields.io/badge/license-apache%202.0-blue)
+![LuaRocks](https://img.shields.io/luarocks/v/gsdenys/amqp-client)
+
+
 Lua Client for AMQP 0.9.1. This library is already tested with RabbitMQ and should work with any other AMQP 0.9.1 broker.
 
 It is a fork of : 

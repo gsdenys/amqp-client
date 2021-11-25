@@ -7,7 +7,6 @@ local format = string.format
 ---Basically this table just contains functions
 local assertion = {}
 
-
 ---failOnAssert function that throws an exception each called time
 ---@param msg string the error message
 ---@param fn string the function name

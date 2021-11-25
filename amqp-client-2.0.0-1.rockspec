@@ -35,6 +35,8 @@ build = {
 
    --   ['amqp.log.simple'] = "src/amqp/log/simple.lua"
 
+      ['amqp.uri'] = "src/uri.lua",
+
       ['amqp.utils.assertion'] = "src/utils/assertion.lua",
       ['amqp.utils.messages'] = "src/utils/messages.lua",
       ['amqp.utils.level'] = "src/utils/level.lua",
