@@ -16,5 +16,5 @@ exclude = {
     '/term/',
     '/say/',
     '/luarocks/',
-    'mediator.lua',
+    '/mediator.lua',
 }
