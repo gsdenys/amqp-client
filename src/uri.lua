@@ -70,9 +70,13 @@ local function validate_uri(uri, fname)
     assertion.whitespace(fname, uri)
 end
 
-local function validate_path(scheme, fname)
+--- Validata path to grant that there is just one level of path
+--
+---@param path any the path to be check
+---@param fname any the caller function
+local function validate_path(path, fname)
     local count = 0
-    for token in string.gmatch(scheme, "/") do count = count + 1 end
+    for _ in string.gmatch(path, "/") do count = count + 1 end
 
     assertion.True(fname, messages.ERR_URI_SUB_PATH, count <= 1)
 end
