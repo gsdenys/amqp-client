@@ -6,3 +6,15 @@ tick = true
 include = {
     "amqp",
 }
+
+exclude = {
+    'spec/',
+    'docs/',
+    '/busted/',
+    '/luassert/',
+    '/pl/',
+    '/term/',
+    '/say/',
+    '/luarocks/',
+    'mediator.lua',
+}
