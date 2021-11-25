@@ -7,14 +7,14 @@ include = {
     "amqp",
 }
 
-exclude = {
-    'spec/',
-    'docs/',
-    '/busted/',
-    '/luassert/',
-    '/pl/',
-    '/term/',
-    '/say/',
-    '/luarocks/',
-    '/*.lua',
-}
+-- exclude = {
+--     'spec/',
+--     'docs/',
+--     '/busted/',
+--     '/luassert/',
+--     '/pl/',
+--     '/term/',
+--     '/say/',
+--     '/luarocks/',
+--     '/mediator.lua',
+-- }
