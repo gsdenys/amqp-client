@@ -106,16 +106,4 @@ function parser.parse(uri)
     return builder
 end
 
---- make URI validaton and return true for valid URI or false for not valid one
----
----@param uri any the URI to validate
----@return boolean - true to valid URI and false to invalid
-function parser.validate(uri)
-    local _, err = pcall(validate_uri, uri)
-
-    if err ~= nil then return false end
-
-    return true
-end
-
 return parser
