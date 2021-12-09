@@ -26,6 +26,10 @@ local amqp = {
     CLOSE_WAIT    = 2,
   },
 
+  sock_state = {
+    CONNECTED = 1,
+  },
+
   frame = {
     METHOD_FRAME    = 1,
     HEADER_FRAME    = 2,

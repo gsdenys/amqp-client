@@ -21,9 +21,21 @@ local min = math.min
 local socket
 local tcp
 
-local use_cqueues, lfs = pcall(require,"cqueues")
+local use_ngx_socket = _G.ngx and _G.ngx.socket and true
+
+local use_cqueues, lfs 
+
+if not use_ngx_socket then 
+  use_cqueues, lfs  = pcall(require,"cqueues")
+end
 
 local amqp = {}
+
+amqp._VERSION = '0.01'
+
+local mt = {
+    __index = amqp,
+}
 
 -- let ngx.socket take precedence to lua socket
 --[[
@@ -33,7 +45,10 @@ if _G.ngx and _G.ngx.socket then
   tcp = socket.tcp
 else
 --]]
-if use_cqueues == true then
+if use_ngx_socket then
+  socket = _G.ngx.socket
+  tcp = socket.tcp
+elseif use_cqueues == true then
   logger.dbg("[socket] Unsing cqueues socket.")
   socket = require('cqueues.socket')
   tcp = socket
@@ -115,14 +130,15 @@ end
 --
 function amqp:new(opts)
   local sock, err
-  local mt = { __index = self }
+  -- local mt = { __index = self }
+    -- local mt = { __index = amqp }
 
   mandatory_options(opts)
 
-  if use_cqueues == true then
+  if use_cqueues == true then 
     sock = tcp
   else
-    sock, err = tcp()
+    sock, err = tcp() -- ngx socket also call function
   end
 
   if not sock then
@@ -143,9 +159,8 @@ function amqp:new(opts)
     mechanism = opts.mechanism or c.MECHANISM_PLAIN
   }
 
-  setmetatable(ctx,mt)
-
-  return ctx
+  return setmetatable(ctx, mt)
+  -- return ctx
 end
 
 local function sslhandshake(ctx)
@@ -156,7 +171,7 @@ local function sslhandshake(ctx)
   local err
   local errno
 
-  if _G.ngx then
+  if use_ngx_socket then
     session, err = sock:sslhandshake()
     if not session then
       logger.error("[amqp:sslhandshake] SSL handshake failed: ", err)
@@ -221,7 +236,40 @@ function amqp:connect(...)
 
   self._subscribed = false
 
-  if use_cqueues == true then
+  if use_ngx_socket then
+    local user = self.opts.user or 'guest'
+    local port = self.opts.port
+    local pool = self.opts.pool
+    local host = self.opts.host
+
+    if host then
+       local port = port or 5671
+        if not pool then
+            pool = user .. ":" ..  ":" .. host .. ":"
+                   .. port
+        end
+
+        sock:settimeout(self.opts.connect_timeout or 5000) -- configurable but 5 seconds timeout
+
+       local ok, err = sock:connect(host, port, { pool = pool,
+                             pool_size = self.opts.pool_size,
+                             backlog = self.opts.backlog })
+        if not ok then
+          return nil, 'failed to connect: ' .. err
+        end
+
+        local reused = sock:getreusedtimes()
+
+        -- already connected and slhandshaked
+        if reused and reused > 0 then
+            self.state = c.sock_state.CONNECTED
+            return true
+        end
+    else
+      logger.error('[amqp:connect] host is not set')
+      return nil, 'host is not set'
+    end
+  elseif use_cqueues == true then
     local s, err = sock.connect(...)
     if not s then
       logger.error("[amqp:connect] failed: ", err)
@@ -239,9 +287,11 @@ function amqp:connect(...)
     end
   end
 
+  self.state = c.sock_state.CONNECTED
   if self.opts.ssl then
     return sslhandshake(self)
   end
+
   return true
 end
 
@@ -253,9 +303,45 @@ function amqp:close()
   if not sock then
     return nil, "not initialized"
   end
+
+  -- should set state to nil or closed
+  self.state = nil
   return sock:close()
 end
 
+-- set keepalve
+-- 
+function amqp:set_keepalive(...)
+  if not use_ngx_socket then
+    return nil, 'set_keepalive is not supported'
+  end
+
+ local sock = self.sock
+  if not sock then
+      return nil, "not initialized"
+  end
+
+  if self.state ~= c.sock_state.CONNECTED then
+      return nil, "cannot be reused in the current connection state: "
+                    .. (self.connection_state or "nil")
+  end
+
+  self.state = nil
+  return sock:setkeepalive(...)
+end
+
+function amqp:get_reused_times()
+  if not use_ngx_socket then
+      return nil, 'get_reused_times is not supported'
+  end
+
+  local sock = self.sock
+  if not sock then
+      return nil, "not initialized"
+  end
+
+  return sock:getreusedtimes()
+end
 
 local function platform()
   local has_jit, jit = pcall(require, "jit")
@@ -441,6 +527,11 @@ function amqp:setup()
     return nil, "not initialized"
   end
 
+  if  self.channel_state == c.state.ESTABLISHED then
+    -- logger.dbg('[amqp:setup] already setuped before')
+    return true
+  end
+
   -- configurable but 30 seconds read timeout
   sock:settimeout(self.opts.read_timeout or 30000)
 
@@ -482,7 +573,6 @@ function amqp:setup()
   end
 
   self.connection_state = c.state.ESTABLISHED
-
   res, err = amqp.channel_open(self)
   if not res then
     logger.error("[amqp:setup] channel_open failed: ", err)
